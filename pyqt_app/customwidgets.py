@@ -1714,6 +1714,7 @@ class SubscribeWidget(QWidget):
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self._menuPolicy)
         self.installEventFilter(self)
+        self.setStyleSheet('QToolTip{background: white}')
 
     def _read(self):
         novel_app = self.info.novel_app
@@ -2203,8 +2204,8 @@ class SiteButton(QPushButton):
     def __onsitechange(self, index: int, state: int) -> None:
         flag = self.__listwidget.count() - 1
         i = 0
-        for index in range(self.__listwidget.count()):
-            item = self.__listwidget.item(index)
+        for j in range(self.__listwidget.count()):
+            item = self.__listwidget.item(j)
             widget = self.__listwidget.itemWidget(item)
             if not widget.is_sperator:
                 if widget.checkbox.isChecked():

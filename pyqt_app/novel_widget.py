@@ -94,7 +94,7 @@ class NovelWidget(QWidget, Ui_Form, HumReadMixin):
         QStandardPaths.writableLocation(
             QStandardPaths.HomeLocation)).absoluteFilePath(f'.{app_name}') # 程序缓存根目录
 
-    # config: str = '搜书虫.ini'
+    # config: str = 'Fxxk.ini'
 
     caches: str = 'http_caches'
 
@@ -533,7 +533,7 @@ class NovelWidget(QWidget, Ui_Form, HumReadMixin):
     @pyqtSlot(bool, int)
     def _updateEnginesSetting(self, state: bool, index: int) -> None:
         msg = self.site_button.getSiteName(index), state
-        key = 'Engines/eng_%s' % (msg[0])
+        key = 'Engines/eng_%s' % msg[0]
         save_value = f'{msg[0]}*---*{state}'
         self.settings.setValue(key, save_value)
 
@@ -957,7 +957,6 @@ class NovelWidget(QWidget, Ui_Form, HumReadMixin):
     def updateSubscribeByInfo(self, info: InfoObj) -> None:
         subscribe_widget = self.getSubscribeWidget(info.novel_subs_index)
         if info.chapter_count() != subscribe_widget.info.chapter_count():
-            print('已更新: ', info.novel_name)
             subscribe_widget.setSubscirbeLinkState(SubState.update_latest)
             self.titleMsgInfo(
                 f'{info.novel_name}--已更新: {info.latest_chapter()}',
@@ -975,7 +974,6 @@ class NovelWidget(QWidget, Ui_Form, HumReadMixin):
         task_widget = self.getCurrentTaskWidget()
         if task_widget:
             if info == task_widget.info:
-                print('update', info.novel_name)
                 task_widget.info = info
                 task_widget.updateSubmitPage(info)
 

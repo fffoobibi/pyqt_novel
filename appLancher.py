@@ -377,8 +377,9 @@ class GuiMain(FramelessWindow):
         self._showselectdialog(resize=(w * .7, h * .7))
         self.selectdialog.show()
         self.selectdialog.gotoTransferPage(ip_address, is_alive)
-        self.novel_widget.infs_widget.desFocus(self.de_focus_color)
-        self.update()
+        if self.novel_widget.infs_widget:
+            self.novel_widget.infs_widget.desFocus(self.de_focus_color)
+            self.update()
 
     def paintEvent(self, event):
         super().paintEvent(event)

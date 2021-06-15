@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Form</class>
+ <widget class="QWidget" name="Form">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>463</width>
+    <height>43</height>
+   </rect>
+  </property>
+  <property name="font">
+   <font>
+    <family>微软雅黑</family>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,20,0,0,0,0">
+   <item>
+    <widget class="QCheckBox" name="checkBox">
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="novel_name">
+     <property name="contextMenuPolicy">
+      <enum>Qt::CustomContextMenu</enum>
+     </property>
+     <property name="text">
+      <string>1. 诛仙.txt</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="novel_size">
+     <property name="text">
+      <string>3MB</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="novel_site">
+     <property name="font">
+      <font>
+       <family>微软雅黑</family>
+       <underline>true</underline>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">text-decoration:underline;</string>
+     </property>
+     <property name="text">
+      <string>知轩藏书</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="info_pushButton">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;详细&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{border:none}
+QPushButton:hover{background: lightgray; border-radius:2px}</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="../sources/sources.qrc">
+       <normaloff>:/ico/book_1182605_easyicon.net.svg</normaloff>:/ico/book_1182605_easyicon.net.svg</iconset>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="GifButton" name="down_pushButton">
+     <property name="toolTip">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600;&quot;&gt;下载&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton{border:none}
+QPushButton:hover{background: lightgray; border-radius:2px}</string>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="icon">
+      <iconset resource="../sources/sources.qrc">
+       <normaloff>:/ico/download_1229240_easyicon.net.svg</normaloff>:/ico/download_1229240_easyicon.net.svg</iconset>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>GifButton</class>
+   <extends>QPushButton</extends>
+   <header location="global">customwidgets</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../sources/sources.qrc"/>
+ </resources>
+ <connections/>
+</ui>

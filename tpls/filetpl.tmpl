@@ -1,0 +1,60 @@
+'''
+说明
+
+插件名称必须已plugin开头的py文件,比如plugin1.py, plugin2.py
+插件必须定义两个类: BasicFileDownTask为下载小说的类, BasicFileSpider为搜索小说的scrapy.Spider子类
+
+BasicFileSpider子类中必须定义InfoObj对象,根据爬取的网站规则定义好以下字段内容,自定义的插件才能成功使用
+
+inf = InfoObj()
+inf.novel_name = '诛仙'               # 必须定义,搜索结果的小说名称
+inf.novel_introutced = '...'         # 小说详情介绍,可以不定义
+inf.novel_img_url = 'http://...'     # 可以不定义,小说封面url, 如果为'',则不下载小说封面
+inf.novel_img_headers = {}           # 小说封面下载headers
+inf.novel_info_url = 'http://...'    # 可以不定义,小说详情url,可以不定义
+
+inf.novel_url = download_url         #必须定义,小说下载url,否则无法下载
+inf.novel_file_type = 'txt'          # 必须定义,小说下载文件格式,比如txt,rar
+inf.novel_size = '2MB'               # 小说大小,可以不定义,默认显示'--'
+self.finalStep(inf)                 # 开始爬取,当定义好inf所需要的字段,必须调用,否则插件无法正常运行
+
+'''
+
+import scrapy
+from scrapy.linkextractors import LinkExtractor
+from app_runtime import BasicFileSpider, BasicFileHandler, register, InfoObj
+
+
+@register
+class FileTask${task_name}(BasicFileHandler):
+
+    use_plugin = False  # 为True时使用插件, 默认不使用
+
+    name = '${site_name}'  # 必须定义:唯一名称,和BasicFileSpider子类名称相同
+
+    header = {}  #小说下载headers
+    
+    def file_headers_hook(self, inf): # 设置下载header的钩子函数
+        return cls.header
+
+class FileSpider${plugin_name}(BasicFileSpider):
+
+    name = '${site_name}'  # 必须定义:唯一名称,和BasicFileDownTask子类名称相同
+
+    novel_name = '' # 待搜索的小说名称
+
+    use_plugin = False  # 为True时使用插件, 默认不使用
+
+    def start_requests(self): # scrapy搜索开始
+        pass
+
+    def parse(self, response): # 回调函数
+        pass
+
+    def getDownLoadUrl(self, response): # 回调函数
+        pass
+
+        
+        '''
+        ...其他爬取过程
+        '''

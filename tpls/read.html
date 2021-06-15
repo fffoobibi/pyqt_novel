@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=GBK">
+    <style>
+        p#read_content {
+            letter-spacing:{{ letter_spacing}}px;
+            text-indent:{{ indent_size }}px;
+            margin-left:{{ margin_size }}px;
+            margin-right:{{ margin_size }}px;
+            font-size:{{ font_size }}pt;
+            font-family:{{ font_family }};
+            line-height: {{ line_height }}%;
+        }
+    </style>
+</head>
+<body>
+    <div id="mlfy_main_text" class="zt6" >
+        <h2 style="margin-left:5px;font-family:{{ font_family }}">{{ messages.chapter }}</h1>
+        <div id="TextContent" class="read-content">
+            <dt class="tp">
+                <ins class="adsbygoogle" style="display:inline-block;width:728px;height:90px">
+            </dt>
+            {% for item in messages.content %}
+                <p id="read_content">{{ item | safe }} </p>
+            {% endfor %}
+            <p>搜书虫</p>
+        </div>
+    </div>
+</body>
+</html>

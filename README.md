@@ -23,14 +23,18 @@ pyqt编写的集阅读,搜索,下载的小说软件
 
 ![](docs\使用.gif)
 
-2.调试功能
+2.阅读
+
+<img src="https://images.gitee.com/uploads/images/2021/0615/144703_cf36d0bb_4925919.gif" alt="阅读.gif" style="zoom:50%;"/>
+
+3.调试功能
 
 <img src="https://images.gitee.com/uploads/images/2021/0615/143535_37e4899a_4925919.gif" alt="调试.gif" style="zoom:50%;"/>
 
-3.命令
+4.命令
 
 <img src="https://images.gitee.com/uploads/images/2021/0615/143810_f0ff9f90_4925919.gif" alt="命令.gif" style="zoom:50%;"/>
 
-4.传输
+5.传输
 
 <img src="https://images.gitee.com/uploads/images/2021/0615/142104_bd722487_4925919.gif" alt="传输.gif" style="zoom:50%;"/>

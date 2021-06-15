@@ -32,5 +32,4 @@ pyqt编写的集阅读,搜索,下载的小说软件
 ![](docs\命令.gif)
 
 4.传输
-
-![](docs\传输.gif)
+![输入图片说明](https://images.gitee.com/uploads/images/2021/0615/142104_bd722487_4925919.gif "传输.gif")

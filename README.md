@@ -21,16 +21,16 @@ pyqt编写的集阅读,搜索,下载的小说软件
 
 1.使用
 
-<img src=".\docs\使用.gif" alt="'sdfsdf'" style="zoom:50%;" />
+<img src="docs\使用.gif" alt="'sdfsdf'" style="zoom:50%;" />
 
 2.调试功能
 
-<img src=".\docs\调试.gif" style="zoom:50%;" />
+<img src="docs\调试.gif" style="zoom:50%;" />
 
 3.命令
 
-<img src=".\docs\命令.gif" style="zoom:50%;" />
+<img src="docs\命令.gif" style="zoom:50%;" />
 
 4.传输
 
-<img src=".\docs\传输.gif" style="zoom:50%;" />
+<img src="docs\传输.gif" style="zoom:50%;" />

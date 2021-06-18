@@ -118,9 +118,9 @@ class PageState(Enum):
 
 
 class settings_property(object):
-    def __init__(self, dft, type):
+    def __init__(self, dft):
         self.dft = dft
-        self.type = type
+        self.type = type(dft)
         self.func = None
 
     def __set__(self, instance, value):
@@ -146,48 +146,48 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
     def settings(self) -> QSettings:
         return self.task_widget.novel_widget.settings
 
-    @settings_property(False, bool)
+    @settings_property(False)
     def use_custom(self):
         ...
 
-    @settings_property('white', str)
+    @settings_property('white')
     def cust_f_color(self):
         ...
 
-    @settings_property('black', str)
+    @settings_property('black')
     def cust_b_color(self):
         ...
 
-    @settings_property(100, int)
+    @settings_property(100)
     def line_height(self):
         ...
 
-    @settings_property('TsangerJinKai04 W03', str)
+    @settings_property('TsangerJinKai04 W03')
     def family(self):
         ...
 
-    @settings_property('t_dark', str)
+    @settings_property('t_dark')
     def theme(self):
         ...
 
-    @settings_property(20, int)
+    @settings_property(20)
     def indent(self):
         ...
 
-    @settings_property(15, int)
+    @settings_property(15)
     def font_size(self):
         ...
 
-    @settings_property(40, int)
+    @settings_property(40)
     def margin(self):
         ...
 
-    @settings_property(2, int)
+    @settings_property(2)
     def letter_spacing(self):
         ...
 
     @pyqtSlot(str)
-    def _change(self, color_name: str):
+    def _change(self, color_name: str) -> None:
         if self.sender() == self.text_browser._text_color:
             self.pushButton_5.setStyleSheet(
                 'background:%s; border:1px solid white;border-radius:3px' %
@@ -203,7 +203,7 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                                           None)
 
     @pyqtSlot(int)
-    def _changeState(self, state: int):
+    def _changeState(self, state: int) -> None:
         if state == Qt.Checked:
             self.task_widget.setReadStyle(self.cust_b_color, self.cust_f_color,
                                           None)
@@ -299,6 +299,8 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         font_combo.addFontTag('华文楷体')
         font_combo.addFontTag('华文细黑')
         font_combo.addFontTag('方正姚体')
+        font_combo.addFontTag('方正颜宋', QFont(self.task_widget.novel_widget.cust_familys[1]))
+        font_combo.addFontTag('方正悠宋', QFont(self.task_widget.novel_widget.cust_familys[-1]))
         font_combo.addFontTag('微软雅黑')
         font_combo.addFontTag('新宋体')
         font_combo.addFontTag('宋体')
@@ -313,11 +315,13 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         font_combo.list_widget.verticalScrollBar().setStyleSheet(s_list_style)
         self.font_combo.currentIndexChanged.connect(self.updateFont)
 
-        self.label_4.hide()
-        self.checkBox.hide()
+        self.label_4.hide() # bold
+        self.checkBox.hide() # bold
+        self.label_9.hide() # brightness
+        self.frame_10.hide() # brightness
 
     @pyqtSlot(str)
-    def _changeLetter(self, v):
+    def _changeLetter(self, v: str) -> None:
         space = int(v) if v else 0
         message = self.text_browser.messages
         font_size = self.horizontalSlider.value()
@@ -353,14 +357,14 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                 self._changeLetter(str(value - 1))
 
     @pyqtSlot()
-    def _changeReadStyle(self):
+    def _changeReadStyle(self) -> None:
         self.use_custom = False
         self.checkBox_2.setChecked(False)
         checked = self.bg_2.checkedButton()
         self.theme = checked.objectName()
         self.changeReadTheme(checked.objectName())
 
-    def changeReadTheme(self, theme: str):
+    def changeReadTheme(self, theme: str) -> None:
         checked = getattr(self, theme)
         if checked == self.t_dark:
             bkg_color = '#161819'
@@ -372,7 +376,7 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
             text_color = temp[-1].split(':')[-1]
         self.task_widget.setReadStyle(bkg_color, text_color, theme)
 
-    def updatePage(self):
+    def updatePage(self) -> None:
         self.label.setText('字体大小: %s' % self.font_size)  # font_size
         self.label_2.setText('多倍行距: %.1f' %
                              (self.line_height / 100))  # line_spacing
@@ -394,7 +398,7 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         self.checkBox_2.setChecked(self.use_custom)
 
     @pyqtSlot(int)
-    def updateFont(self, index: int):
+    def updateFont(self, index: int) -> None:
         family = self.font_combo.getFontFamily(index)
         self.text_browser.font_family = family
         message = self.text_browser.messages
@@ -413,7 +417,7 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
             temp * self.text_browser.total_length())
         self.family = family
 
-    def updateFontSize(self, value: int):
+    def updateFontSize(self, value: int) -> None:
         self.label.setText(f'字体大小: {value}')
         message = self.text_browser.messages
         indent = self.horizontalSlider_3.value()
@@ -432,7 +436,7 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
             temp * self.text_browser.total_length())
         self.font_size = value
 
-    def updateLineSpace(self, value):
+    def updateLineSpace(self, value: int) -> None:
         self.label_2.setText(f'多倍行距: {value/100:.1f}')
         line_height = value
         message = self.text_browser.messages
@@ -452,7 +456,7 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
             temp * self.text_browser.total_length())
         self.line_height = line_height
 
-    def updateIndentWidth(self, value):
+    def updateIndentWidth(self, value: int) -> None:
         self.label_5.setText(f'首行缩进: {value}')
         message = self.text_browser.messages
         margin_size = self.horizontalSlider_4.value()
@@ -471,7 +475,7 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
             temp * self.text_browser.total_length())
         self.indent = value
 
-    def updateMarginWidth(self, value):
+    def updateMarginWidth(self, value: int) -> None:
         self.label_6.setText(f'边距大小: {value}')
         message = self.text_browser.messages
         indent = self.horizontalSlider_3.value()
@@ -490,7 +494,7 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
             temp * self.text_browser.total_length())
         self.margin = value
 
-    def groupPolicy(self):
+    def groupPolicy(self) -> None:
         check = self.button_group.checkedButton()
         if check == self.pushButton:
             self.stackedWidget.setCurrentIndex(0)
@@ -501,7 +505,7 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         elif check == self.pushButton_6:
             self.close()
 
-    def sliderGroup(self):
+    def sliderGroup(self) -> None:
         checked = self.slider_groups.checkedButton()
         if checked == self.fz_plus:
             self.horizontalSlider.setValue(self.horizontalSlider.value() + 1)
@@ -837,7 +841,7 @@ class StyleHandler(object):  # 设置阅读主题
 
     def _set_taskwidget_style(self, bkg_color: ColorTypes,
                               text_color: ColorTypes, theme: str,
-                              hover_color: ColorTypes):
+                              hover_color: ColorTypes) -> None:
         bar_frame_style = '''
             QPushButton{border:none; color: %s; background-color:transparent}
             QPushButton:hover{border:none; color:%s}
@@ -852,7 +856,7 @@ class StyleHandler(object):  # 设置阅读主题
 
     def _set_novelwiget_style(self, bkg_color: ColorTypes,
                               text_color: ColorTypes, theme: str,
-                              hover_color: ColorTypes):
+                              hover_color: ColorTypes) -> None:
         self.novel_widget.layout().setContentsMargins(0, 0, 0, 0)
         self.novel_widget.setContentsMargins(0, 0, 0, 0)
 
@@ -865,7 +869,7 @@ class StyleHandler(object):  # 设置阅读主题
                      bkg_color: ColorTypes,
                      text_color: ColorTypes,
                      theme: str,
-                     hover_color: ColorTypes = None) -> str:
+                     hover_color: ColorTypes = None) -> None:
         bkg_color = QColor(bkg_color)
         text_color = QColor(text_color)
         b_color = f'rgba({bkg_color.red()}, {bkg_color.green()}, {bkg_color.blue()}, {bkg_color.alpha()})' if bkg_color.alpha(

@@ -339,10 +339,22 @@ class GuiMain(FramelessWindow):
         self.popdialog.textBrowser.clearAllLines()
 
     def loadSources(self) -> None:
+        self.de_focus_color = QColor(30, 30, 30, 50)
+        self.font_familys = []
         font_index = QFontDatabase.addApplicationFont('./fonts/仓耳今楷04-W03.ttf')
         self.font_family = QFontDatabase.applicationFontFamilies(
             font_index).pop()
-        self.de_focus_color = QColor(30, 30, 30, 50)
+        self.font_familys.append(self.font_family)
+
+        font_index = QFontDatabase.addApplicationFont('./fonts/FZYanSJW_Xian.ttf')
+        font_name = QFontDatabase.applicationFontFamilies(
+            font_index).pop()
+        self.font_familys.append(font_name)
+        
+        font_index = QFontDatabase.addApplicationFont('./fonts/FZYouSJW_507R.TTF')
+        font_name = QFontDatabase.applicationFontFamilies(font_index).pop()
+        self.font_familys.append(font_name)
+
 
     def _showpopdialog(self, *, resize: tuple = None, dy: int = None) -> None:
         if resize:

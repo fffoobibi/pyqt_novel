@@ -1099,6 +1099,10 @@ class NovelWidget(QWidget, Ui_Form, HumReadMixin):
     def cust_font(self) -> QFont:
         return QFont(self._parent.font_family, 12)
 
+    @property
+    def cust_familys(self) -> List[str]:
+        return self._parent.font_familys
+
     @pyqtSlot(InfoObj)
     def gotoIntroutced(self, inf: InfoObj) -> None:  # 进入详情页面
         if self.isInTaskWidget():

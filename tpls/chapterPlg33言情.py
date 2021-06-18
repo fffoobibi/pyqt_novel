@@ -18,18 +18,13 @@ inf.novel_info_url = 'http://...'    # 可以不定义,小说详情url,可以不
 
 '''
 
-
 import scrapy
 import httpx
 from scrapy.linkextractors import LinkExtractor
 from scrapy.http import HtmlResponse
 
-# from filesspider import BasicChapterSpider
-# from downtasks import BasicChapterDownTask, register
-# from infoobj import InfoObj
 from bs4 import BeautifulSoup
 from app_runtime import BasicChapterSpider, BasicChapterHandler, register, InfoObj
-
 
 
 @register
@@ -40,13 +35,20 @@ class ChapterTask33言情(BasicChapterHandler):
     name = '33言情'  # 必须定义:唯一名称,和BasicFileSpider子类名称相同
 
     header = {
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-        "Host": "www.33yq.com",
-        "Referer": "https://www.33yq.com/read/56877/",
-        "Upgrade-Insecure-Requests": "1",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36 Edg/90.0.818.66"
+        "Accept":
+        "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        "Accept-Encoding":
+        "gzip, deflate, br",
+        "Accept-Language":
+        "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+        "Host":
+        "www.33yq.com",
+        "Referer":
+        "https://www.33yq.com/read/56877/",
+        "Upgrade-Insecure-Requests":
+        "1",
+        "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36 Edg/90.0.818.66"
     }  # 当前小说章节的下载headers
 
     # 设置下载小说章节header的钩子函数,默认返回{}
@@ -57,7 +59,8 @@ class ChapterTask33言情(BasicChapterHandler):
             cls.header['Referer'] = inf.novel_chapter_urls[url_index - 1][0]
         return cls.header
 
-    def parse_charpter(cls, url_index: int, response: 'httpx.Response', chapter: str):
+    def parse_charpter(cls, url_index: int, response: 'httpx.Response',
+                       chapter: str):
         '''
         url_index: 当前的章节的初始请求顺序
         response: httpx.Response实例
@@ -87,23 +90,36 @@ class ChapterSpider33言情(BasicChapterSpider):
     use_plugin = True  # 为True时使用插件, 默认不使用
 
     start_headers = {
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-        "Accept-Encoding": "gzip, deflate, br",
-        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-        "Cache-Control": "max-age=0",
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Host": "www.33yq.com",
-        "Origin": "https://www.33yq.com",
-        "Referer": "https://www.33yq.com/",
-        "Upgrade-Insecure-Requests": "1",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36 Edg/90.0.818.66"
+        "Accept":
+        "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        "Accept-Encoding":
+        "gzip, deflate, br",
+        "Accept-Language":
+        "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+        "Cache-Control":
+        "max-age=0",
+        "Content-Type":
+        "application/x-www-form-urlencoded",
+        "Host":
+        "www.33yq.com",
+        "Origin":
+        "https://www.33yq.com",
+        "Referer":
+        "https://www.33yq.com/",
+        "Upgrade-Insecure-Requests":
+        "1",
+        "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36 Edg/90.0.818.66"
     }
 
     link_headers = {
         "Host": "www.33yq.com",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
+        "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0",
+        "Accept":
+        "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language":
+        "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
         "Accept-Encoding": "gzip, deflate, br",
         "Connection": "keep-alive",
         "Upgrade-Insecure-Requests": "1",
@@ -116,18 +132,28 @@ class ChapterSpider33言情(BasicChapterSpider):
         form_data = {
             "s": "articlename",
             "searchkey": self.novel_name,
-            "Submit": ""}
-        yield scrapy.FormRequest(url, headers=self.start_headers, formdata=form_data)
+            "Submit": ""
+        }
+        yield scrapy.FormRequest(url,
+                                 headers=self.start_headers,
+                                 formdata=form_data)
 
     def parse(self, response):
         next_page_headers = {
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-            "Host": "www.33yq.com",
-            "Referer": "https://www.33yq.com/search/8056/1.html",
-            "Upgrade-Insecure-Requests": "1",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36 Edg/90.0.818.66"
+            "Accept":
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+            "Accept-Encoding":
+            "gzip, deflate, br",
+            "Accept-Language":
+            "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "Host":
+            "www.33yq.com",
+            "Referer":
+            "https://www.33yq.com/search/8056/1.html",
+            "Upgrade-Insecure-Requests":
+            "1",
+            "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36 Edg/90.0.818.66"
         }
         yield from self._parseSinglePage(response)
         links = LinkExtractor(
@@ -142,24 +168,37 @@ class ChapterSpider33言情(BasicChapterSpider):
 
     def _parseSinglePage(self, response):
         next_headers = {
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-            "Host": "www.33yq.com",
-            "Referer": response.url,
-            "Upgrade-Insecure-Requests": "1",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36 Edg/90.0.818.66"
+            "Accept":
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+            "Accept-Encoding":
+            "gzip, deflate, br",
+            "Accept-Language":
+            "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "Host":
+            "www.33yq.com",
+            "Referer":
+            response.url,
+            "Upgrade-Insecure-Requests":
+            "1",
+            "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36 Edg/90.0.818.66"
         }
         results = response.css('#alist #alistbox')
         for result in results:
             pic_url = result.css('div.pic a::attr(href)').get()
-            novel_name = self.join_striped(result.css(
-                'div.info > div.title *::text'), join_sep='')
+            novel_name = self.join_striped(
+                result.css('div.info > div.title *::text'), join_sep='')
             next_url = 'https://www.33yq.com' + \
                 result.css('div.info > div.title a::attr(href)').get()
             latest_chapter = self.join_striped(
                 result.css('div.info > div.sys *::text'))
-            yield scrapy.Request(next_url, self.getChapter, headers=next_headers, meta={'latest_chapter': latest_chapter, 'novel_name': novel_name})
+            yield scrapy.Request(next_url,
+                                 self.getChapter,
+                                 headers=next_headers,
+                                 meta={
+                                     'latest_chapter': latest_chapter,
+                                     'novel_name': novel_name
+                                 })
 
     def getChapter(self, response):
         '''
@@ -169,21 +208,34 @@ class ChapterSpider33言情(BasicChapterSpider):
         self.finalStep(inf)
 
         '''
+        img_url = response.css('#fmimg > img::attr(src)').get('')
+        img_headers = {
+            "Host": "img.33yq.com",
+            "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0",
+            "Accept": "image/webp,*/*",
+            "Accept-Language":"zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Alt-Used": "img.33yq.com",
+            "Referer": response.url,
+            "Cache-Control": "max-age=0"
+        }
         update_time = self.join_striped(
             response.css('#info > p:nth-child(5)::text'))
         latest_chapter = self.join_striped(
             response.css('#info > p:nth-child(6) *::text'))
-        novel_introduce = response.css(
-            '#intro > p.introtxt::text').get('').strip()
+        novel_introduce = response.css('#intro > p.introtxt::text').get(
+            '').strip()
         introduce = update_time + '\n' + latest_chapter + '\n' + novel_introduce
-        links = LinkExtractor(restrict_css=(
-            '#list > dl > dd')).extract_links(response)
+        links = LinkExtractor(
+            restrict_css=('#list > dl > dd')).extract_links(response)
         info = InfoObj()
         info.novel_name = response.meta['novel_name']
         info.novel_chapter_urls = [(link.url, link.text) for link in links]
         info.novel_introutced = introduce
         info.novel_info_url = response.url
         info.novel_subs_headers = self.link_headers
+        info.novel_img_url = img_url
+        info.novel_img_headers= img_headers
         self.finalStep(info)
 
     @classmethod
@@ -205,11 +257,11 @@ class ChapterSpider33言情(BasicChapterSpider):
             response.css('#info > p:nth-child(5)::text'))
         latest_chapter = cls.join_striped(
             response.css('#info > p:nth-child(6) *::text'))
-        novel_introduce = response.css(
-            '#intro > p.introtxt::text').get('').strip()
+        novel_introduce = response.css('#intro > p.introtxt::text').get(
+            '').strip()
         introduce = update_time + '\n' + latest_chapter + '\n' + novel_introduce
-        links = LinkExtractor(restrict_css=(
-            '#list > dl > dd')).extract_links(response)
+        links = LinkExtractor(
+            restrict_css=('#list > dl > dd')).extract_links(response)
         info = InfoObj()
         info.novel_chapter_urls = [(link.url, link.text) for link in links]
         info.novel_introutced = introduce

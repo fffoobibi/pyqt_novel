@@ -37,9 +37,12 @@ class ChapterTask新笔趣阁(BasicChapterHandler):
 
     header = {
         "Host": "www.xbiquge.la",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
+        "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0",
+        "Accept":
+        "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language":
+        "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
         "Accept-Encoding": "gzip, deflate",
         "Referer": "http://www.xbiquge.la/53/53951/",
         "Upgrade-Insecure-Requests": "1",
@@ -54,7 +57,8 @@ class ChapterTask新笔趣阁(BasicChapterHandler):
             cls.header['Referer'] = inf.novel_chapter_urls[url_index - 1][0]
         return cls.header
 
-    def parse_charpter(cls, url_index: int, response: 'httpx.Response', chapter: str):
+    def parse_charpter(cls, url_index: int, response: 'httpx.Response',
+                       chapter: str):
         '''
         url_index: 当前的章节的初始请求顺序
         response: httpx.Response实例
@@ -75,7 +79,6 @@ class ChapterTask新笔趣阁(BasicChapterHandler):
         return content_lines.stripped_strings, chapter.string
 
 
-
 class ChapterSpider新笔趣阁(BasicChapterSpider):
 
     name = '新笔趣阁'  # 必须定义:唯一名称,和BasicChapterDownTask子类名称相同
@@ -86,9 +89,12 @@ class ChapterSpider新笔趣阁(BasicChapterSpider):
 
     headers = {
         "Host": "www.xbiquge.la",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
+        "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0",
+        "Accept":
+        "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language":
+        "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
         "Accept-Encoding": "gzip, deflate",
         "Content-Type": "application/x-www-form-urlencoded",
         "Origin": "http://www.xbiquge.la",
@@ -99,23 +105,30 @@ class ChapterSpider新笔趣阁(BasicChapterSpider):
     def start_requests(self):
         self.start_url = r'http://www.xbiquge.la/modules/article/waps.php'
         form_data = {'searchkey': self.novel_name}
-        yield scrapy.FormRequest(self.start_url, headers=self.headers, formdata=form_data)
+        yield scrapy.FormRequest(self.start_url,
+                                 headers=self.headers,
+                                 formdata=form_data)
 
     def parse(self, response):
         extrator = LinkExtractor(restrict_css=['.grid td.even'])
         links = extrator.extract_links(response)
         chapter_headers = {
             "Host": "www.xbiquge.la",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-            "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
+            "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0",
+            "Accept":
+            "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language":
+            "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
             "Accept-Encoding": "gzip, deflate",
             "Referer": "http://www.xbiquge.la/modules/article/waps.php",
             "Upgrade-Insecure-Requests": "1",
             "Cache-Control": "max-age=0"
         }
         for link in links:
-            yield scrapy.Request(link.url, self.getChapter, headers=chapter_headers)
+            yield scrapy.Request(link.url,
+                                 self.getChapter,
+                                 headers=chapter_headers)
 
     def getChapter(self, response):
         '''
@@ -125,12 +138,28 @@ class ChapterSpider新笔趣阁(BasicChapterSpider):
         self.finalStep(inf)
 
         '''
-        introutecd1 = ' '.join([value for value in response.css(
-            '#info p::text, #info a::text').getall() if value.strip()])
-        introutced2 = '\n'.join([value for value in response.css('#intro *::text').getall() if value.strip()])
+        introutecd1 = ' '.join([
+            value
+            for value in response.css('#info p::text, #info a::text').getall()
+            if value.strip()
+        ])
+        introutced2 = '\n'.join([
+            value for value in response.css('#intro *::text').getall()
+            if value.strip()
+        ])
         introutced = introutecd1 + '\n' + introutced2
-        novel_name = response.css('#info h1::text').get()
-        img_url = response.css('#fmimg img::attr(src)').get()
+        novel_name = response.css('#info h1::text').get('')
+        img_url = response.css('#fmimg img::attr(src)').get('')
+        img_headers = {
+            "Host": "www.xbiquge.la",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0",
+            "Accept": "image/webp,*/*",
+            "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Referer": response.url,
+            # "Cookie": "bdshare_firstime=1621141439161; _abcde_qweasd=0",
+            "Cache-Control": "max-age=0",
+        }
 
         chapter_links_extrator = LinkExtractor(restrict_css=['#list dd'])
         links = chapter_links_extrator.extract_links(response)
@@ -140,23 +169,29 @@ class ChapterSpider新笔趣阁(BasicChapterSpider):
         info.novel_name = novel_name
         info.novel_introutced = introutced
         info.novel_info_url = novel_info_url
-        # info.novel_img_url = img_url
-        # info.novel_img_headers = img_headers
+        info.novel_img_url = img_url
+        info.novel_img_headers = img_headers
         info.novel_chapter_urls = novel_chapter_urls
         self.finalStep(info)
 
     @classmethod
     def subscribe_updateinfo(cls, response: HtmlResponse) -> InfoObj:
-        introutecd1 = ' '.join([value for value in response.css(
-            '#info p::text, #info a::text').getall() if value.strip()])
-        introutced2 = '\n'.join([value for value in response.css('#intro *::text').getall() if value.strip()])
+        introutecd1 = ' '.join([
+            value
+            for value in response.css('#info p::text, #info a::text').getall()
+            if value.strip()
+        ])
+        introutced2 = '\n'.join([
+            value for value in response.css('#intro *::text').getall()
+            if value.strip()
+        ])
         introutced = introutecd1 + '\n' + introutced2
         chapter_links_extrator = LinkExtractor(restrict_css=['#list dd'])
         links = chapter_links_extrator.extract_links(response)
         novel_chapter_urls = [(link.url, link.text) for link in links]
         novel_info_url = response.url
         info = InfoObj()
-      
+
         info.novel_introutced = introutced
         info.novel_info_url = novel_info_url
         info.novel_chapter_urls = novel_chapter_urls

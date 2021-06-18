@@ -39,12 +39,16 @@ class ChapterTask爱下小说(BasicChapterHandler):
 
     header = {
         "Host": "www.ixiatxt.la",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:86.0) Gecko/20100101 Firefox/86.0",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
+        "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:86.0) Gecko/20100101 Firefox/86.0",
+        "Accept":
+        "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language":
+        "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
         "Accept-Encoding": "gzip, deflate",
         "Referer": "http://www.ixiatxt.com/book/93330/21280072.html",
-        "Upgrade-Insecure-Requests": "1"}
+        "Upgrade-Insecure-Requests": "1"
+    }
 
     def chapter_headers_hook(cls, url_index, url, inf) -> dict:
         if url_index == 0:
@@ -61,13 +65,20 @@ class ChapterTask爱下小说(BasicChapterHandler):
 
 
 headers = {
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
-    "Accept-Encoding": "gzip, deflate",
-    "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
-    "Host": "www.xiaxs.la",
-    "Referer": "http://www.ixiatxt.la/",
-    "Upgrade-Insecure-Requests": "1",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36 Edg/89.0.774.57"
+    "Accept":
+    "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+    "Accept-Encoding":
+    "gzip, deflate",
+    "Accept-Language":
+    "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+    "Host":
+    "www.xiaxs.la",
+    "Referer":
+    "http://www.ixiatxt.la/",
+    "Upgrade-Insecure-Requests":
+    "1",
+    "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36 Edg/89.0.774.57"
 }
 
 
@@ -89,31 +100,45 @@ class ChapterSpider爱下小说(BasicChapterSpider):
         for link in links:
             header = headers.copy()
             header.update(Referer=link.url)
-            yield scrapy.Request(link.url, self.getReader, headers=header, meta={'novel_name': link.text})
-      
+            yield scrapy.Request(link.url,
+                                 self.getReader,
+                                 headers=header,
+                                 meta={'novel_name': link.text})
+
     def getReader(self, response):
         extor = LinkExtractor(restrict_xpaths=['//div[@class="showDown"]'])
         links = extor.extract_links(response)
+        
         for link in links:
             inf = InfoObj()
             introucted = response.css('div.showInfo *::text').getall()
-            introucted = '\n'.join([line.strip() for line in introucted if line.strip()])
+            introucted = '\n'.join(
+                [line.strip() for line in introucted if line.strip()])
             inf.novel_name = response.meta['novel_name']
             inf.novel_introutced = introucted
-            inf.novel_img_url = ''
-            inf.novel_img_headers = {}
             inf.novel_info_url = link.url
-            yield scrapy.Request(link.url, self.getChapter, headers=headers,  meta={'inf': inf})
+            yield scrapy.Request(link.url,
+                                 self.getChapter,
+                                 headers=headers,
+                                 meta={'inf': inf})
 
     def getChapter(self, response):
         inf = response.meta['inf']
-        extractor = LinkExtractor(restrict_css=['#bodyabd > div:nth-child(9) div.pc_list'])
+        img_url = response.css('.tupian img::attr(src)').get('')
+        img_headers = {
+            "Host": "www.xiaxs.la",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0",
+            "Accept": "image/webp,*/*",
+            "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Referer": response.url,
+            "Cache-Control": "max-age=0"
+        }
+        inf.novel_img_url = img_url
+        inf.novel_img_headers = img_headers
+        extractor = LinkExtractor(
+            restrict_css=['#bodyabd > div:nth-child(9) div.pc_list'])
         links = extractor.extract_links(response)
         for link in links:
             inf.novel_chapter_urls.append([link.url, link.text])
         self.finalStep(inf)
-    
-    # @classmethod
-    # def subscribe_rules(cls, response: HtmlResponse) -> InfoObj:
-        
-

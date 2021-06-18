@@ -135,8 +135,8 @@ class ChapterSpider笔趣阁2(BasicChapterSpider):
             '#info p::text, #info a::text').getall() if value.strip()])
         introutced2 = response.css('#intro::text').get('')
         introutced = introutecd1 + '\n' + introutced2
-        novel_name = response.css('#info h1::text').get()
-        img_url = response.css('#fmimg img::attr(src)').get()
+        novel_name = response.css('#info h1::text').get('')
+        img_url = response.css('#fmimg img::attr(src)').get('')
         img_headers = {
             "Host": "www.biquge.se",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0",
@@ -156,8 +156,8 @@ class ChapterSpider笔趣阁2(BasicChapterSpider):
         info.novel_name = novel_name
         info.novel_introutced = introutced
         info.novel_info_url = novel_info_url
-        # info.novel_img_url = img_url
-        # info.novel_img_headers = img_headers
+        info.novel_img_url = img_url
+        info.novel_img_headers = img_headers
         info.novel_chapter_urls = novel_chapter_urls
         self.finalStep(info)
 
@@ -181,5 +181,5 @@ class ChapterSpider笔趣阁2(BasicChapterSpider):
            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0"
         }
         resp = httpx.get('http://www.biquge.se/', headers=cookies_headers)
-        print(resp.status_code, resp.cookies)
+        # print(resp.status_code, resp.cookies)
         return resp.cookies

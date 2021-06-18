@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>645</width>
-    <height>577</height>
+    <width>747</width>
+    <height>652</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -142,8 +142,8 @@ border:none</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>623</width>
-            <height>530</height>
+            <width>725</width>
+            <height>605</height>
            </rect>
           </property>
           <property name="styleSheet">
@@ -593,6 +593,72 @@ QCheckBox::indicator:checked{
                 </property>
                 <property name="checkable">
                  <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_9">
+             <property name="text">
+              <string>屏幕亮度: 20</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="frame_10">
+             <property name="frameShape">
+              <enum>QFrame::StyledPanel</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_10">
+              <property name="leftMargin">
+               <number>0</number>
+              </property>
+              <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="rightMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
+               <number>0</number>
+              </property>
+              <item>
+               <widget class="QSlider" name="horizontalSlider_5">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="bright_plus">
+                <property name="cursor">
+                 <cursorShape>PointingHandCursor</cursorShape>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="../sources/sources.qrc">
+                  <normaloff>:/ico/jia.png</normaloff>:/ico/jia.png</iconset>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="bright_subtract">
+                <property name="cursor">
+                 <cursorShape>PointingHandCursor</cursorShape>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="../sources/sources.qrc">
+                  <normaloff>:/ico/jian.png</normaloff>:/ico/jian.png</iconset>
                 </property>
                </widget>
               </item>

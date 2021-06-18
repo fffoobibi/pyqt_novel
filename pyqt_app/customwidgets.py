@@ -1977,18 +1977,20 @@ class SubscribeWidget(QWidget):
             y = self.margins
             _w = w - self.margins * 2
             _h = h - self.text_height - self.margins * 2 - self.spacing
-
+            painter.save()
             painter.setPen(Qt.transparent)
             painter.setBrush(QColor(20, 20, 20, 20))
             painter.drawRect(x, y, _w, _h / 4)
 
-            painter.setPen(QColor('#636262'))
+            painter.setPen(QColor('#636262'))  
             painter.setFont(QFont('微软雅黑', 9, QFont.Bold))
+            painter.setCompositionMode(QPainter.CompositionMode_Difference) # 颜色取反
             text = self.info.novel_read_infos.get("chapter_name", None)
             text = self.info.first_chapter() if text is None else text
             text = self._textAutoWrap(text, _w - 8, painter.fontMetrics(),
                                       1).strip()
             painter.drawText(x, y, _w, _h / 4, Qt.AlignCenter, text)
+            painter.restore()
 
             # path = QPainterPath()
             # path.addRoundedRect(QRectF(self.rect()), 5, 5)

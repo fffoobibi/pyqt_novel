@@ -858,14 +858,16 @@ class IconWidget(QWidget):
             res = []
             row_count = 1
             for alpha in content:
-                res.append(alpha)
+                res.append(alpha.strip())
                 if fm.width("".join(res)) >= limit:
                     row_count += 1
                     if rows:
                         if row_count > rows:
                             break
-                    final.append("".join(res))
+                    final.append("".join(res[:-1]))
+                    temp = res[-1]
                     res.clear()
+                    res.append(temp.strip())
             newst = "\n".join(final) + "\n" + "".join(res)
             if rows:
                 newst = fm.elidedText(newst, Qt.ElideRight, limit * rows)

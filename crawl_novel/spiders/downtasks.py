@@ -778,22 +778,14 @@ class _JiuJiuDownTask(BasicFileHandler):
     use_plugin = True
     name = "九九小说"
     header = {
-        'Host': 'down.txt99.org',
-        'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:85.0) Gecko/20100101 Firefox/85.0',
-        'Accept':
-        'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language':
-        'zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'Referer': 'https://www.txt99.org/',
-        'Upgrade-Insecure-Requests': '1',
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-User': '?1'
+        "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        "accept-encoding": "gzip, deflate, br",
+        "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+        "cache-control": "no-cache",
+        "pragma": "no-cache",
+        "referer": "https://www.caimoge.cc/down/64158.html",
+        "upgrade-insecure-requests": "1",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.101 Safari/537.36 Edg/91.0.864.48"
     }
 
     def save_path_hook(self, response, inf):
@@ -806,6 +798,7 @@ class _JiuJiuDownTask(BasicFileHandler):
         return save_path
 
     def file_headers_hook(cls, inf):
+        cls.header['referer'] = inf.novel_url
         return cls.header
 
 
@@ -905,7 +898,7 @@ class ImgDownTask(QRunnable):
             except:
                 ...
         except FileNotFoundError:
-            ...  # 宅男小说\绝色房东爱上我\最强医道.jpg
+            ... 
         except:
             ...
         finally:

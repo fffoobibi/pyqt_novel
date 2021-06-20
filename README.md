@@ -59,7 +59,7 @@ pyqt编写的集阅读,搜索,下载的小说软件
 
     class FileSpider${plugin_name}(BasicFileSpider):
 
-        name = '测试'  # 必须定义:唯一名称,和BasicFileDownTask子类名称相同
+        name = '测试'  # 必须定义:唯一名称,和BasicFileHandler子类名称相同
 
         novel_name = '' # 待搜索的小说名称
 
@@ -142,7 +142,7 @@ BasicFileSpider子类中必须定义InfoObj对象,根据爬取的网站规则定
 
         class ChapterSpiderCeshi(BasicChapterSpider):
 
-            name = '测试' # 必须定义:唯一名称,和BasicChapterDownTask子类名称相同
+            name = '测试' # 必须定义:唯一名称,和BasicChapterHandler子类名称相同
 
             novel_name = ''  # 待搜索的小说名称
 

@@ -283,7 +283,7 @@ class ChapterDownloader(BasicDownloader):
             inf.dump()
             self.down_status = 2
 
-    async def _download(self, inf: InfoObj) -> None:
+    async def _download(self, inf: InfoObj) -> asyncio.Task:
         total = len(inf.novel_chapter_urls)
         read_dir = inf.novel_app.getReadCachesDir()
         exists_chapters = self.exits_chapters(read_dir, inf)
@@ -296,7 +296,7 @@ class ChapterDownloader(BasicDownloader):
                     header = handler.chapter_headers_hook(url_index, url, inf)
                     task = asyncio.create_task(
                         self._down_chapter(url_index, url, chapter_name,
-                                           header, client, inf,
+                                           header, client, inf, handler,
                                            exists_chapters, read_dir))
                     tasks.append(task)
             if tasks:
@@ -341,10 +341,11 @@ class ChapterDownloader(BasicDownloader):
                             header: dict,
                             client: httpx.AsyncClient,
                             info: InfoObj,
+                            handler: Type[Handler],
                             exists_chapter: List[int] = None,
-                            read_dir: QDir = None) -> Optional[tuple]:
+                            read_dir: QDir = None) -> asyncio.Task:
         task_info = info.getTaskInfo(url_index)
-        handler = get_handle_cls(info.novel_site)
+        # handler = get_handle_cls(info.novel_site)
         if read_dir is not None:  # 优先从缓存中获取
             if url_index in exists_chapter:
                 message = self._get_message_from_caches(
@@ -418,6 +419,7 @@ class ChapterDownloader(BasicDownloader):
         save_dir = info.novel_name + info.hexdigest
         if read_dir.exists(save_dir) == False:
             read_dir.mkdir(save_dir)
+            return False
         s_path = read_dir.absoluteFilePath(save_dir)
         flags = [int(v.split('___')[0]) for v in os.listdir(s_path)]
         if index in flags:
@@ -460,7 +462,7 @@ class ChapterDownloader(BasicDownloader):
                        read_dir: QDir,
                        info: InfoObj,
                        client: httpx.AsyncClient,
-                       handler: Handler,
+                       handler: Type[Handler],
                        all: bool = False) -> List[asyncio.Task]:  # 预下载
         total = info.chapter_count()
         exists_chapters = self.exits_chapters(read_dir, info)
@@ -478,7 +480,7 @@ class ChapterDownloader(BasicDownloader):
                             i, next_url, info)
                         next_task = asyncio.create_task(
                             self._down_chapter(i, next_url, next_chapter,
-                                               next_header, client, info))
+                                               next_header, client, info, handler))
                         res.append(next_task)
         return res
 
@@ -504,7 +506,7 @@ class ChapterDownloader(BasicDownloader):
                            url_index: int,
                            chapter_name: str,
                            info: InfoObj,
-                           all: bool = False) -> None:  # 请求章节内容
+                           all: bool = False) -> asyncio.Task:  # 请求章节内容
         novel_app = info.novel_app
         read_dir = novel_app.getReadCachesDir()
         handler = get_handle_cls(info.novel_site)
@@ -518,7 +520,7 @@ class ChapterDownloader(BasicDownloader):
                     header = handler.chapter_headers_hook(url_index, url, info)
                     task = asyncio.create_task(
                         self._down_chapter(url_index, url, chapter_name,
-                                           header, client, info))
+                                           header, client, info, handler))
                     tasks.append(task)
                 pre_heats = self.pre_heat_tasks(url_index + 1, self.pre_count,
                                                 read_dir, info, client,

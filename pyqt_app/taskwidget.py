@@ -1,25 +1,26 @@
-from json import load
 import wmi
 import platform
+import os
 
 from enum import Enum, IntEnum
 from types import MethodType
-from typing import Any, List, Union
+from typing import Any, Callable, List, Union
 
-from PyQt5.QtWidgets import (QButtonGroup, QListWidget, QListWidgetItem,
-                             QPushButton, QWidget, QApplication, QMenu,
+from PyQt5.QtWidgets import (QButtonGroup, QDialog, QFrame, QHBoxLayout,
+                             QLabel, QListWidget, QListWidgetItem, QPushButton,
+                             QStyle, QVBoxLayout, QWidget, QApplication, QMenu,
                              QStyledItemDelegate, QStyleOptionViewItem,
                              QFileDialog)
 from PyQt5.QtCore import (QDir, QFileInfo, QSettings, pyqtSignal, pyqtSlot,
                           QSize, Qt, QModelIndex, QStandardPaths)
-from PyQt5.QtGui import (QImage, QPixmap, QPainter, QPen, QCursor, QIcon, QFont,
-                         QFontMetrics, QColor)
+from PyQt5.QtGui import (QImage, QPixmap, QPainter, QPen, QCursor, QIcon,
+                         QFont, QFontMetrics, QColor)
 
 from crawl_novel import InfoObj, EightSpider, get_spider_byname, DownStatus, Markup
 
 from .taskwidgetui import Ui_Form
 from .common_srcs import CommonPixmaps
-from .customwidgets import HistoryLineEdit, IconWidget, SubscribeWidget, get_subscribeLinkobj, TaskReadBrowser, FInValidator
+from .customwidgets import IconWidget, SubscribeWidget, get_subscribeLinkobj, TaskReadBrowser, FInValidator
 from .styles import listwidget_v_scrollbar, menu_style, COLOR, read_v_style
 from .magic import qmixin, lasyproperty
 from .more_widgetui import Ui_Form as MoreUi
@@ -119,10 +120,11 @@ class PageState(Enum):
 
 
 class settings_property(object):
-    def __init__(self, dft):
+    def __init__(self, dft: Any, return_hook: Callable = None):
         self.dft = dft
         self.type = type(dft)
         self.func = None
+        self.return_hook = return_hook
 
     def __set__(self, instance, value):
         instance.settings.setValue(f'Reading/{self.func.__name__}', value)
@@ -130,13 +132,29 @@ class settings_property(object):
     def __get__(self, instance, owner):
         if instance is None:
             return self
-        return instance.settings.value(f'Reading/{self.func.__name__}',
-                                       self.dft,
-                                       type=self.type)
+        result = instance.settings.value(f'Reading/{self.func.__name__}',
+                                         self.dft,
+                                         type=self.type)
+        if self.return_hook is not None:
+            return self.return_hook(result)
+        return result
 
     def __call__(self, func) -> 'settings_property':
         self.func = func
         return self
+
+
+class MoreDelegate(QStyledItemDelegate):
+    def paint(self, painter: QPainter, option: QStyleOptionViewItem,
+              index: QModelIndex) -> None:
+        rect = option.rect  # 目标矩形
+        pixmap = QPixmap(index.data(Qt.UserRole))
+        super().paint(painter, option, index)
+        painter.drawPixmap(rect, pixmap)
+        if option.state & QStyle.State_HasFocus:  # checked
+            painter.fillRect(rect, QColor(0, 0, 0, 150))
+        # if option.state & QStyle.State_MouseOver:
+        # pass
 
 
 class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
@@ -146,6 +164,90 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
     @lasyproperty
     def settings(self) -> QSettings:
         return self.task_widget.novel_widget.settings
+
+    @lasyproperty
+    def latest_dialog(self) -> QDialog:
+        def item_click():
+            item = list_widget.currentItem()
+            pix = item.data(Qt.UserRole)
+            dialog.close()
+            self.setBackgroundPic(pix)
+
+        def add_cust(self, custs: List, current: str):
+            self.list_widget.clear()
+            datas = []
+            for file in custs:
+                item = QListWidgetItem()
+                item.setToolTip(file)
+                item.setSizeHint(QSize(50, 60))
+                item.setData(Qt.UserRole, file)
+                self.list_widget.addItem(item)
+                datas.append(file)
+            index = datas.index(current)
+            if index > -1:
+                self.list_widget.setCurrentRow(index)
+
+        def show_policy(self, custs: List, current: str):
+            self.add_cust(custs, current)
+            self.exec_()
+            self.list_widget.setFocus(True)
+
+        list_style = '''
+            QListWidget::Item:hover:active{
+            background-color: transparent;
+            color:#CCCCCC;
+            border:none}
+            QListWidget::Item{
+            color:#CCCCCC;
+            border:none}
+            QListWidget::Item:selected{
+            background-color: black;
+            color: #CC295F}
+            QListWidget{outline:0px; background-color: transparent; border:none}
+        '''
+        dialog_style = '''QDialog{border:1px solid gray}QLabel{color:white; font-family: 微软雅黑}QPushButton{color:white;font-family: 微软雅黑}
+            QListWidget{border:none}
+        '''
+
+        dialog = QDialog(self)
+        dialog.setStyleSheet(dialog_style)
+        dialog.setWindowFlags(Qt.FramelessWindowHint | dialog.windowFlags())
+
+        list_widget = QListWidget()
+        list_widget.setCursor(Qt.PointingHandCursor)
+        list_widget.verticalScrollBar().setStyleSheet(s_list_style)
+        list_widget.setStyleSheet(list_style)
+        list_widget.setVerticalScrollMode(
+            QListWidget.ScrollPerPixel)  # 滚动方式,像素滚动
+        list_widget.verticalScrollBar().setSingleStep(15)
+        list_widget.setItemDelegate(MoreDelegate())
+        list_widget.setSpacing(5)
+
+        temp = self.cust_images
+        for file in temp:
+            item = QListWidgetItem()
+            item.setSizeHint(QSize(50, 60))
+            item.setData(Qt.UserRole, file)
+            list_widget.addItem(item)
+
+        v = QVBoxLayout(dialog)
+        v.addWidget(QLabel('最近'))
+        v.addWidget(list_widget)
+        frame = QFrame()
+        h = QHBoxLayout(frame)
+        bt1 = QPushButton('确认', clicked=item_click)
+        bt2 = QPushButton('取消', clicked=dialog.close)
+        bt1.setCursor(Qt.PointingHandCursor)
+        bt2.setCursor(Qt.PointingHandCursor)
+        h.addWidget(bt1)
+        h.addWidget(bt2)
+        v.addWidget(frame)
+
+        dialog.list_widget = list_widget
+        dialog.add_cust = MethodType(add_cust, dialog)
+        dialog.show_policy = MethodType(show_policy, dialog)
+        # dialog.hide()
+        return dialog
 
     @settings_property(False)
     def use_custom(self):
@@ -161,6 +263,10 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
 
     @settings_property('')
     def cust_image(self):
+        ...
+
+    @settings_property([], lambda result: [file for file in result if os.path.exists(file)])
+    def cust_images(self):
         ...
 
     @settings_property(100)
@@ -216,27 +322,43 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         else:
             self.use_custom = False
 
-    def setBackgroundPic(self):
+    def setBackgroundPic(self, picture: str = None): # 设置阅读背景图片
         home_dir = QDir(
             QStandardPaths.writableLocation(QStandardPaths.HomeLocation))
         if home_dir.exists('Desktop'):
             desk = home_dir.absoluteFilePath('Desktop')
         else:
             desk = home_dir.absolutePath()
-        file, file_type = QFileDialog.getOpenFileName(
-            self, '选择背景图片', desk, filter='图片文件(*.jpg;*.png;*.jpeg)')
+        if picture:
+            file = picture
+        else:
+            file, file_type = QFileDialog.getOpenFileName(
+                self, '选择背景图片', desk, filter='图片文件(*.jpg;*.png;*.jpeg)')
         if file:
             self.cust_image = file
+            temp = self.cust_images
+            if file not in temp and len(temp) <= 9:
+                temp.append(file)
+            elif file not in temp:
+                temp[0] = file
+            self.cust_images = temp
             self.background_button.setToolTip(file)
             self.background_button.setStyleSheet(
-                '''border: 1px solid white;border-radius:3px; background-image: url(%s);
-                        background-repeat: repeat-xy;'''%file)
+                'border:1px solid white;border-radius:3px;background-image:url(%s);background-repeat:repeat-xy;'
+                % file)
             image = QImage(file)
-            color = image.pixelColor(image.width() / 2, 20)
-            self.pushButton_4.setStyleSheet('''border: 1px solid white;border-radius:3px;
-            background-color: %s''' % color.name())
+            color = image.pixelColor(image.width() / 2, 40)  # 取样背景色
+            ivt_color = QColor(255 - color.red(), 255 - color.green(),
+                               255 - color.blue())  # 背景色取反
+            self.pushButton_4.setStyleSheet(
+                'border: 1px solid white;border-radius:3px;background-color: %s'
+                % color.name())
+            self.pushButton_5.setStyleSheet(
+                'border: 1px solid white;border-radius:3px;background-color: %s'
+                % ivt_color.name())
             self.cust_b_color = color.name()
-            self.task_widget.style_handle.reload(color)
+            self.cust_f_color = ivt_color.name()
+            self.task_widget.style_handle.reload(color, ivt_color)
 
     def __init__(self, *args, **kwargs):
         self.task_widget: TaskWidget = kwargs.pop('task_widget', None)
@@ -267,6 +389,8 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         self.pushButton_5.setFixedSize(f_width, f_height)
         self.background_button.setFixedSize(f_width, f_height)
         self.background_button.clicked.connect(self.setBackgroundPic)
+        self.his_button.clicked.connect(lambda: self.latest_dialog.show_policy(
+            self.cust_images, self.cust_image))
         self.text_browser._text_color.selected_color.connect(self._change)
         self.text_browser._bkg_color.selected_color.connect(self._change)
 
@@ -427,8 +551,9 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         self.lineEdit.setText(str(self.letter_spacing))
         self.font_combo.setCurrent(self.family)
         self.checkBox_2.setChecked(self.use_custom)
-        self.background_button.setStyleSheet('''border: 1px solid white;border-radius:3px; background-image: url(%s);
-                        background-repeat: repeat-xy;'''% self.cust_image)
+        self.background_button.setStyleSheet(
+            '''border: 1px solid white;border-radius:3px; background-image: url(%s);
+                        background-repeat: repeat-xy;''' % self.cust_image)
         if self.cust_image:
             self.background_button.setToolTip(self.cust_image)
 
@@ -824,7 +949,10 @@ class StyleHandler(object):  # 设置阅读主题
     def getMsgColor(self, theme: str) -> Any:
         return self.bar_color.get(theme)[1]
 
-    def reload(self, bkg: ColorTypes=None, text:ColorTypes=None, hover:ColorTypes=None):
+    def reload(self,
+               bkg: ColorTypes = None,
+               text: ColorTypes = None,
+               hover: ColorTypes = None):
         if self.current_bkg:
             b = self.current_bkg if bkg is None else bkg
             t = self.current_text if text is None else text
@@ -875,7 +1003,7 @@ class StyleHandler(object):  # 设置阅读主题
                 QScrollBar::sub-line:vertical {
                     background: none;
                 }''' % (bkg_color, img_source, text_color)
-        
+
         text_style = '''QTextBrowser{border-left:none;
             border-bottom: none;
             border-right: none;
@@ -883,7 +1011,8 @@ class StyleHandler(object):  # 设置阅读主题
             background-color: %s;
             color: %s;
             selection-color: %s;
-            selection-background-color: %s;''' % (bkg_color, text_color, bkg_color, text_color)
+            selection-background-color: %s;''' % (bkg_color, text_color,
+                                                  bkg_color, text_color)
         if use_custom:
             other = 'border-image: url(%s);}' % img_source
         else:

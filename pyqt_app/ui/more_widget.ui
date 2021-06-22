@@ -142,8 +142,8 @@ border:none</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>725</width>
-            <height>605</height>
+            <width>108</width>
+            <height>443</height>
            </rect>
           </property>
           <property name="styleSheet">
@@ -1185,12 +1185,31 @@ border-radius:3px</string>
           <enum>QFrame::Raised</enum>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_11">
+          <property name="spacing">
+           <number>0</number>
+          </property>
           <item>
            <widget class="QLabel" name="label_13">
             <property name="text">
              <string>背景图片:</string>
             </property>
            </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_7">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeType">
+             <enum>QSizePolicy::Fixed</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>7</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
           </item>
           <item>
            <widget class="QPushButton" name="background_button">
@@ -1203,6 +1222,23 @@ border-radius:3px</string>
             </property>
             <property name="text">
              <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="his_button">
+            <property name="cursor">
+             <cursorShape>PointingHandCursor</cursorShape>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">border:none</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset resource="../sources/sources.qrc">
+              <normaloff>:/ico/省略号.svg</normaloff>:/ico/省略号.svg</iconset>
             </property>
            </widget>
           </item>

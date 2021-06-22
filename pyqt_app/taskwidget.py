@@ -227,12 +227,12 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
             self, '选择背景图片', desk, filter='图片文件(*.jpg;*.png;*.jpeg)')
         if file:
             self.cust_image = file
-            
+            self.background_button.setToolTip(file)
             self.background_button.setStyleSheet(
                 '''border: 1px solid white;border-radius:3px; background-image: url(%s);
                         background-repeat: repeat-xy;'''%file)
             image = QImage(file)
-            color = image.pixelColor(image.width() / 2, image.height() / 2)
+            color = image.pixelColor(image.width() / 2, 20)
             self.pushButton_4.setStyleSheet('''border: 1px solid white;border-radius:3px;
             background-color: %s''' % color.name())
             self.cust_b_color = color.name()
@@ -429,6 +429,8 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         self.checkBox_2.setChecked(self.use_custom)
         self.background_button.setStyleSheet('''border: 1px solid white;border-radius:3px; background-image: url(%s);
                         background-repeat: repeat-xy;'''% self.cust_image)
+        if self.cust_image:
+            self.background_button.setToolTip(self.cust_image)
 
     @pyqtSlot(int)
     def updateFont(self, index: int) -> None:

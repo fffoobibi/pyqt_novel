@@ -113,7 +113,7 @@ QPushButton:hover{image: url(:/ico/close_128px_1175741_easyicon.net.ico);width:2
       <string notr="true"/>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="page">
       <property name="styleSheet">
@@ -1096,7 +1096,7 @@ color:#49423A</string>
        <item>
         <widget class="QFrame" name="frame_4">
          <property name="cursor">
-          <cursorShape>PointingHandCursor</cursorShape>
+          <cursorShape>ArrowCursor</cursorShape>
          </property>
          <property name="frameShape">
           <enum>QFrame::StyledPanel</enum>
@@ -1114,6 +1114,9 @@ color:#49423A</string>
           </item>
           <item>
            <widget class="QPushButton" name="pushButton_4">
+            <property name="cursor">
+             <cursorShape>PointingHandCursor</cursorShape>
+            </property>
             <property name="styleSheet">
              <string notr="true">border:1px solid white;
 border-radius:3px</string>
@@ -1159,6 +1162,52 @@ border-radius:3px</string>
           </item>
           <item>
            <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frame_11">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_11">
+          <item>
+           <widget class="QLabel" name="label_13">
+            <property name="text">
+             <string>背景图片:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="background_button">
+            <property name="cursor">
+             <cursorShape>PointingHandCursor</cursorShape>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">border:1px solid white;
+border-radius:3px</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_6">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>

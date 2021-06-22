@@ -1,3 +1,4 @@
+from json import load
 import wmi
 import platform
 
@@ -7,17 +8,18 @@ from typing import Any, List, Union
 
 from PyQt5.QtWidgets import (QButtonGroup, QListWidget, QListWidgetItem,
                              QPushButton, QWidget, QApplication, QMenu,
-                             QStyledItemDelegate, QStyleOptionViewItem)
+                             QStyledItemDelegate, QStyleOptionViewItem,
+                             QFileDialog)
 from PyQt5.QtCore import (QDir, QFileInfo, QSettings, pyqtSignal, pyqtSlot,
-                          QSize, Qt, QModelIndex)
-from PyQt5.QtGui import (QPixmap, QPainter, QPen, QCursor, QIcon,
-                         QFont, QFontMetrics, QColor)
+                          QSize, Qt, QModelIndex, QStandardPaths)
+from PyQt5.QtGui import (QImage, QPixmap, QPainter, QPen, QCursor, QIcon, QFont,
+                         QFontMetrics, QColor)
 
 from crawl_novel import InfoObj, EightSpider, get_spider_byname, DownStatus, Markup
 
 from .taskwidgetui import Ui_Form
 from .common_srcs import CommonPixmaps
-from .customwidgets import IconWidget, SubscribeWidget, get_subscribeLinkobj, TaskReadBrowser, FInValidator
+from .customwidgets import HistoryLineEdit, IconWidget, SubscribeWidget, get_subscribeLinkobj, TaskReadBrowser, FInValidator
 from .styles import listwidget_v_scrollbar, menu_style, COLOR, read_v_style
 from .magic import qmixin, lasyproperty
 from .more_widgetui import Ui_Form as MoreUi
@@ -70,7 +72,6 @@ s_list_style = '''
 
 
 class BrightManager:  # 改变屏幕亮度
-    
     def __new__(cls) -> 'BrightManager':
         if not hasattr(cls, '_instance'):
             self = super().__new__(cls)
@@ -158,6 +159,10 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
     def cust_b_color(self):
         ...
 
+    @settings_property('')
+    def cust_image(self):
+        ...
+
     @settings_property(100)
     def line_height(self):
         ...
@@ -205,11 +210,33 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
     @pyqtSlot(int)
     def _changeState(self, state: int) -> None:
         if state == Qt.Checked:
+            self.use_custom = True
             self.task_widget.setReadStyle(self.cust_b_color, self.cust_f_color,
                                           None)
-            self.use_custom = True
         else:
             self.use_custom = False
+
+    def setBackgroundPic(self):
+        home_dir = QDir(
+            QStandardPaths.writableLocation(QStandardPaths.HomeLocation))
+        if home_dir.exists('Desktop'):
+            desk = home_dir.absoluteFilePath('Desktop')
+        else:
+            desk = home_dir.absolutePath()
+        file, file_type = QFileDialog.getOpenFileName(
+            self, '选择背景图片', desk, filter='图片文件(*.jpg;*.png;*.jpeg)')
+        if file:
+            self.cust_image = file
+            
+            self.background_button.setStyleSheet(
+                '''border: 1px solid white;border-radius:3px; background-image: url(%s);
+                        background-repeat: repeat-xy;'''%file)
+            image = QImage(file)
+            color = image.pixelColor(image.width() / 2, image.height() / 2)
+            self.pushButton_4.setStyleSheet('''border: 1px solid white;border-radius:3px;
+            background-color: %s''' % color.name())
+            self.cust_b_color = color.name()
+            self.task_widget.style_handle.reload(color)
 
     def __init__(self, *args, **kwargs):
         self.task_widget: TaskWidget = kwargs.pop('task_widget', None)
@@ -238,6 +265,8 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
             lambda: self.text_browser.show_text_color(self.cust_f_color))
         self.pushButton_4.setFixedSize(f_width, f_height)
         self.pushButton_5.setFixedSize(f_width, f_height)
+        self.background_button.setFixedSize(f_width, f_height)
+        self.background_button.clicked.connect(self.setBackgroundPic)
         self.text_browser._text_color.selected_color.connect(self._change)
         self.text_browser._bkg_color.selected_color.connect(self._change)
 
@@ -299,8 +328,10 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         font_combo.addFontTag('华文楷体')
         font_combo.addFontTag('华文细黑')
         font_combo.addFontTag('方正姚体')
-        font_combo.addFontTag('方正颜宋', QFont(self.task_widget.novel_widget.cust_familys[1]))
-        font_combo.addFontTag('方正悠宋', QFont(self.task_widget.novel_widget.cust_familys[-1]))
+        font_combo.addFontTag(
+            '方正颜宋', QFont(self.task_widget.novel_widget.cust_familys[1]))
+        font_combo.addFontTag(
+            '方正悠宋', QFont(self.task_widget.novel_widget.cust_familys[-1]))
         font_combo.addFontTag('微软雅黑')
         font_combo.addFontTag('新宋体')
         font_combo.addFontTag('宋体')
@@ -315,10 +346,10 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         font_combo.list_widget.verticalScrollBar().setStyleSheet(s_list_style)
         self.font_combo.currentIndexChanged.connect(self.updateFont)
 
-        self.label_4.hide() # bold
-        self.checkBox.hide() # bold
-        self.label_9.hide() # brightness
-        self.frame_10.hide() # brightness
+        self.label_4.hide()  # bold
+        self.checkBox.hide()  # bold
+        self.label_9.hide()  # brightness
+        self.frame_10.hide()  # brightness
 
     @pyqtSlot(str)
     def _changeLetter(self, v: str) -> None:
@@ -396,6 +427,8 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         self.lineEdit.setText(str(self.letter_spacing))
         self.font_combo.setCurrent(self.family)
         self.checkBox_2.setChecked(self.use_custom)
+        self.background_button.setStyleSheet('''border: 1px solid white;border-radius:3px; background-image: url(%s);
+                        background-repeat: repeat-xy;'''% self.cust_image)
 
     @pyqtSlot(int)
     def updateFont(self, index: int) -> None:
@@ -783,21 +816,37 @@ class StyleHandler(object):  # 设置阅读主题
         't_5': CommonPixmaps.theme_t_5,
         't_6': CommonPixmaps.theme_t_6,
         't_dark': CommonPixmaps.theme_t_dark,
-        't_8': CommonPixmaps.theme_t_8
+        't_8': CommonPixmaps.theme_t_8,
     }
 
     def getMsgColor(self, theme: str) -> Any:
         return self.bar_color.get(theme)[1]
 
-    def __init__(self, textbrowser, task_wiget, novel_widget,
-                 main_gui) -> None:
+    def reload(self, bkg: ColorTypes=None, text:ColorTypes=None, hover:ColorTypes=None):
+        if self.current_bkg:
+            b = self.current_bkg if bkg is None else bkg
+            t = self.current_text if text is None else text
+            h = self.current_hover if hover is None else hover
+            self.setReadStyle(b, t, self.current_theme, h)
+
+    def __init__(self, textbrowser: TaskReadBrowser, task_wiget: 'TaskWidget',
+                 novel_widget: 'NovelWidget', main_gui) -> None:
         self.textbrowser = textbrowser
         self.task_widget = task_wiget
         self.novel_widget = novel_widget
         self.main_gui = main_gui
+        self.current_bkg = None
+        self.current_text = None
+        self.current_theme = ''
+        self.current_hover = None
 
     def _set_browser_style(self, bkg_color: ColorTypes, text_color: ColorTypes,
                            theme: str, hover_color: ColorTypes) -> str:
+        use_custom = self.task_widget.more_widget.use_custom
+        if use_custom:
+            img_source = self.task_widget.more_widget.cust_image
+        else:
+            img_source = self.theme_image.get(theme, '')
         scroll_style = '''
                 QScrollBar:vertical {
                     background: %s;
@@ -823,7 +872,8 @@ class StyleHandler(object):  # 设置阅读主题
                 }
                 QScrollBar::sub-line:vertical {
                     background: none;
-                }''' % (bkg_color, self.theme_image.get(theme, ''), text_color)
+                }''' % (bkg_color, img_source, text_color)
+        
         text_style = '''QTextBrowser{border-left:none;
             border-bottom: none;
             border-right: none;
@@ -831,12 +881,12 @@ class StyleHandler(object):  # 设置阅读主题
             background-color: %s;
             color: %s;
             selection-color: %s;
-            selection-background-color: %s;
-            background-image: url(%s);
-            background-repeat: repeat-xy;
-            }''' % (bkg_color, text_color, bkg_color, text_color,
-                    self.theme_image.get(theme, ''))
-        self.textbrowser.setStyleSheet(text_style)
+            selection-background-color: %s;''' % (bkg_color, text_color, bkg_color, text_color)
+        if use_custom:
+            other = 'border-image: url(%s);}' % img_source
+        else:
+            other = 'background-image: url(%s);background-repeat: repeat-xy;}' % img_source
+        self.textbrowser.setStyleSheet(text_style + other)
         self.textbrowser.verticalScrollBar().setStyleSheet(scroll_style)
 
     def _set_taskwidget_style(self, bkg_color: ColorTypes,
@@ -888,11 +938,15 @@ class StyleHandler(object):  # 设置阅读主题
         h_color = f'rgba({hover_to_rgb.red()}, {hover_to_rgb.green()}, {hover_to_rgb.blue()}, {hover_to_rgb.alpha()})' if hover_to_rgb.alpha(
         ) < 255 else hover_to_rgb.name()
 
+        self.current_bkg = bkg_color
+        self.current_text = text_color
+        self.current_hover = hover_color
+        self.current_theme = theme
+
         self._set_browser_style(b_color, t_color, theme, h_color)
         self._set_maingui_style(b_color, t_color, theme, h_color)
         self._set_novelwiget_style(b_color, t_color, theme, h_color)
         self._set_taskwidget_style(b_color, t_color, theme, h_color)
-
 
 
 @qmixin
@@ -1732,7 +1786,8 @@ class TaskWidget(QWidget, Ui_Form):
                 width:10px;
             }
         '''
-        t = (des_color.red(), des_color.green(), des_color.blue(), des_color.alpha())
+        t = (des_color.red(), des_color.green(), des_color.blue(),
+             des_color.alpha())
         self.progressBar.setStyleSheet(s % t)
 
     def setReadStyle(self,

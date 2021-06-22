@@ -13,7 +13,7 @@ from enum import Enum, IntEnum
 from textwrap import fill
 from random import sample
 from functools import partial, partialmethod
-from typing import Any, Callable, List, Optional, Tuple, Union, Iterable
+from typing import Any, Callable, List, Optional, Sequence, Tuple, Union, Iterable
 from collections import deque
 from queue import Queue
 from scrapy.http import HtmlResponse
@@ -579,7 +579,7 @@ class _SubscribeLinkObj(QObject):
             self.states = 0  # 初始状态
             _SubscribeLinkObj._first_init = True
 
-    def updateSubscribeLinks(self, subscribe_infos: Iterable[InfoObj]) -> bool:
+    def updateSubscribeLinks(self, subscribe_infos: Sequence[InfoObj]) -> bool:
         if self.states in [0, 2]:
             if not self.link_thread.isRunning():
                 self.link_thread.start()
@@ -615,7 +615,7 @@ class _SubscribeLinkObj(QObject):
             e.info = info
             raise e
 
-    async def _updateChapterInfos(self, subscribe_infos: Iterable[InfoObj]):
+    async def _updateChapterInfos(self, subscribe_infos: Sequence[InfoObj]):
         async with httpx.AsyncClient() as client:
             tasks = []
             for info in subscribe_infos:
@@ -1984,7 +1984,7 @@ class SubscribeWidget(QWidget):
             painter.setBrush(QColor(20, 20, 20, 20))
             painter.drawRect(x, y, _w, _h / 4)
 
-            painter.setPen(QColor('#636262'))  
+            painter.setPen(QColor('#F4F4F4'))  #636262
             painter.setFont(QFont('微软雅黑', 9, QFont.Bold))
             painter.setCompositionMode(QPainter.CompositionMode_Difference) # 颜色取反
             text = self.info.novel_read_infos.get("chapter_name", None)
@@ -2929,7 +2929,7 @@ class HistoryComboBox(QComboBox):
             return True
         return False
 
-    def extendLogs(self, values: Iterable[str]) -> None:
+    def extendLogs(self, values: Sequence[str]) -> None:
         for value in values:
             self.appendBottom(value)
 
@@ -2996,7 +2996,7 @@ class HistoryLineEdit(QLineEdit):
         for value in copyed:
             self.histories.append(value)
 
-    def setHistories(self, records: Iterable[str]) -> None:
+    def setHistories(self, records: Sequence[str]) -> None:
         self.histories.clear()
         self.histories.extend(records)
         completer = QCompleter(records)

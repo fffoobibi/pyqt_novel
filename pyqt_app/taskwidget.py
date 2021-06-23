@@ -1,26 +1,27 @@
+from crawl_novel.spiders.infoobj import LatestRead
 import wmi
 import platform
 import os
 
-from enum import Enum, IntEnum
+from enum import Enum, Flag, IntEnum
 from types import MethodType
 from typing import Any, Callable, List, Union
 
-from PyQt5.QtWidgets import (QButtonGroup, QDialog, QFrame, QHBoxLayout,
+from PyQt5.QtWidgets import (QButtonGroup, QComboBox, QDialog, QFrame, QHBoxLayout,
                              QLabel, QListWidget, QListWidgetItem, QPushButton,
                              QStyle, QVBoxLayout, QWidget, QApplication, QMenu,
                              QStyledItemDelegate, QStyleOptionViewItem,
                              QFileDialog)
 from PyQt5.QtCore import (QDir, QFileInfo, QSettings, pyqtSignal, pyqtSlot,
                           QSize, Qt, QModelIndex, QStandardPaths)
-from PyQt5.QtGui import (QImage, QPixmap, QPainter, QPen, QCursor, QIcon,
-                         QFont, QFontMetrics, QColor)
+from PyQt5.QtGui import (QAbstractTextDocumentLayout, QImage, QPixmap, QPainter, QPen, QCursor, QIcon,
+                         QFont, QFontMetrics, QColor, QTextDocument)
 
 from crawl_novel import InfoObj, EightSpider, get_spider_byname, DownStatus, Markup
 
 from .taskwidgetui import Ui_Form
 from .common_srcs import CommonPixmaps
-from .customwidgets import IconWidget, SubscribeWidget, get_subscribeLinkobj, TaskReadBrowser, FInValidator
+from .customwidgets import AutoSplitContentTaskReadWidget, IconWidget, SubscribeWidget, get_subscribeLinkobj, TaskReadBrowser, FInValidator
 from .styles import listwidget_v_scrollbar, menu_style, COLOR, read_v_style
 from .magic import qmixin, lasyproperty
 from .more_widgetui import Ui_Form as MoreUi
@@ -154,10 +155,22 @@ class MoreDelegate(QStyledItemDelegate):
         if option.state & QStyle.State_HasFocus:  # checked
             painter.fillRect(rect, QColor(0, 0, 0, 150))
         # if option.state & QStyle.State_MouseOver:
-        # pass
+            # pass
 
+        # p_style = option.widget.style()
+        # document = QTextDocument()
+        # document.setHtml('<b><font color="red">GB</font></b>')
+        # paint_context = QAbstractTextDocumentLayout.PaintContext()
+        # text_rect = p_style.subElementRect(QStyle.SE_ItemViewItemText, option)
+        # painter.save()
+        # painter.translate(text_rect.topLeft())
+        # painter.setClipRect(text_rect.translated(-text_rect.topLeft()))
+        # document.documentLayout().draw(painter, paint_context)
+        # painter.restore()
+        
 
 class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
+
     '''
     parent: main_gui
     '''
@@ -249,6 +262,10 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         # dialog.hide()
         return dialog
 
+    @settings_property(1)
+    def page_turning(self): # 翻页样式, 默认水平翻页
+        ...
+
     @settings_property(False)
     def use_custom(self):
         ...
@@ -322,7 +339,7 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         else:
             self.use_custom = False
 
-    def setBackgroundPic(self, picture: str = None): # 设置阅读背景图片
+    def setBackgroundPic(self, picture: str = None):  # 设置阅读背景图片
         home_dir = QDir(
             QStandardPaths.writableLocation(QStandardPaths.HomeLocation))
         if home_dir.exists('Desktop'):
@@ -358,11 +375,14 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                 % ivt_color.name())
             self.cust_b_color = color.name()
             self.cust_f_color = ivt_color.name()
+            self.checkBox_2.setChecked(True)
             self.task_widget.style_handle.reload(color, ivt_color)
 
     def __init__(self, *args, **kwargs):
         self.task_widget: TaskWidget = kwargs.pop('task_widget', None)
         self.text_browser: TaskReadBrowser = kwargs.pop('text_browser', None)
+        self.auto_split: AutoSplitContentTaskReadWidget = kwargs.pop(
+            'auto_split', None)
         super().__init__(*args, **kwargs)
         self.setupUi(self)
         self.updatePage()
@@ -467,8 +487,15 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         font_combo.setFixedHeight(fm.height() * 1.3)
         font_combo.setFixedWidth(fm.widthChar('微') * 10)
         font_combo.setCurrent(self.family)
+
+        self.read_combo.setFixedHeight(fm.height() * 1.3)
+        self.read_combo.setFixedWidth(fm.widthChar('微') * 10)
+        self.read_combo.setItemDelegate(QStyledItemDelegate())
+
         font_combo.list_widget.verticalScrollBar().setStyleSheet(s_list_style)
         self.font_combo.currentIndexChanged.connect(self.updateFont)
+
+        self.read_combo.currentIndexChanged.connect(self.updatePageTurning)
 
         self.label_4.hide()  # bold
         self.checkBox.hide()  # bold
@@ -482,18 +509,29 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         font_size = self.horizontalSlider.value()
         indent_size = self.horizontalSlider_3.value()
         margin_size = self.horizontalSlider_4.value()
-
-        html = self.text_browser.renderOk(messages=message,
-                                          line_height=self.line_height,
-                                          indent_size=indent_size,
-                                          margin_size=margin_size,
-                                          font_size=font_size,
-                                          letter_spacing=space,
-                                          font_family=self.family)
-        temp = self.task_widget._inf.novel_read_infos.get('percent', 0)
-        self.text_browser.setHtml(html)
-        self.text_browser.verticalScrollBar().setValue(
-            temp * self.text_browser.total_length())
+        # flag = self.task_widget.stackedWidget_3.currentIndex()
+        flag = self.page_turning
+        if flag == 0:
+            html = self.text_browser.renderOk(messages=message,
+                                              line_height=self.line_height,
+                                              indent_size=indent_size,
+                                              margin_size=margin_size,
+                                              font_size=font_size,
+                                              letter_spacing=space,
+                                              font_family=self.family)
+            temp = self.task_widget._inf.novel_read_infos.get('percent', 0)
+            self.text_browser.setHtml(html)
+            self.text_browser.verticalScrollBar().setValue(
+                temp * self.text_browser.total_length())
+        elif flag == 1:
+            self.auto_split.renderOk(messages=message,
+                                     line_height=self.line_height,
+                                     indent_size=indent_size,
+                                     margin_size=margin_size,
+                                     font_size=font_size,
+                                     letter_spacing=space,
+                                     font_family=self.family,
+                                     flag = self.auto_split.flag)
         self.letter_spacing = space
 
     @pyqtSlot()
@@ -556,6 +594,15 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                         background-repeat: repeat-xy;''' % self.cust_image)
         if self.cust_image:
             self.background_button.setToolTip(self.cust_image)
+        self.read_combo.setCurrentIndex(self.page_turning)
+
+    @pyqtSlot(int)
+    def updatePageTurning(self, index: int) -> None:
+        self.page_turning = index
+        if index == 0:
+            self.task_widget.read_fromlatest()
+        elif index == 1:
+            self.task_widget.read_fromlatest(by_first_line=True)
 
     @pyqtSlot(int)
     def updateFont(self, index: int) -> None:
@@ -571,10 +618,18 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                                           font_size=self.font_size,
                                           letter_spacing=letter_spacing,
                                           font_family=family)
-        temp = self.task_widget._inf.novel_read_infos.get('percent', 0)
-        self.text_browser.setHtml(html)
-        self.text_browser.verticalScrollBar().setValue(
-            temp * self.text_browser.total_length())
+        # flag = self.task_widget.stackedWidget_3.currentIndex()
+        flag = self.page_turning
+        if flag == 0:
+            temp = self.task_widget._inf.novel_read_infos.get('percent', 0)
+            self.text_browser.setHtml(html)
+            self.text_browser.verticalScrollBar().setValue(
+                temp * self.text_browser.total_length())
+        elif flag == 1:
+            f = QFont(family, self.font_size)
+            self.auto_split.letter_spacing = letter_spacing
+            self.auto_split.read_font = f
+            self.auto_split.renderOk()
         self.family = family
 
     def updateFontSize(self, value: int) -> None:
@@ -590,10 +645,21 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                                           font_size=value,
                                           letter_spacing=letter_spacing,
                                           font_family=self.family)
-        temp = self.task_widget._inf.novel_read_infos.get('percent', 0)
-        self.text_browser.setHtml(html)
-        self.text_browser.verticalScrollBar().setValue(
-            temp * self.text_browser.total_length())
+        # flag = self.task_widget.stackedWidget_3.currentIndex()
+        flag = self.page_turning
+        if flag == 0:
+            read_info: LatestRead = self.task_widget._inf.novel_read_infos.get('latest_read')
+            if read_info:
+                temp = read_info.float_percent
+            self.text_browser.setHtml(html)
+            if read_info:
+                self.text_browser.verticalScrollBar().setValue(
+                    temp * self.text_browser.total_length())
+        elif flag == 1:
+            f = QFont(self.family, value)
+            self.auto_split.letter_spacing = letter_spacing
+            self.auto_split.read_font = f
+            self.auto_split.renderOk()
         self.font_size = value
 
     def updateLineSpace(self, value: int) -> None:
@@ -610,10 +676,24 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                                           font_size=self.font_size,
                                           letter_spacing=letter_spacing,
                                           font_family=self.family)
-        temp = self.task_widget._inf.novel_read_infos.get('percent', 0)
-        self.text_browser.setHtml(html)
-        self.text_browser.verticalScrollBar().setValue(
-            temp * self.text_browser.total_length())
+        # flag = self.task_widget.stackedWidget_3.currentIndex()
+        flag = self.page_turning
+        if flag == 0:
+            read_info: LatestRead = self.task_widget._inf.novel_read_infos.get('latest_read')
+            if read_info:
+                temp = read_info.float_percent
+            self.text_browser.setHtml(html)
+            if read_info:
+                self.text_browser.verticalScrollBar().setValue(
+                    temp * self.text_browser.total_length())
+        elif flag == 1:
+            self.auto_split.renderOk(line_height=value,
+                                     messages=message,
+                                     indent_size=indent,
+                                     margin_size=margin_size,
+                                     font_size=self.font_size,
+                                     letter_spacing=letter_spacing,
+                                     font_family=self.family)
         self.line_height = line_height
 
     def updateIndentWidth(self, value: int) -> None:
@@ -629,10 +709,24 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                                           font_size=font_size,
                                           letter_spacing=letter_spacing,
                                           font_family=self.family)
-        temp = self.task_widget._inf.novel_read_infos.get('percent', 0)
-        self.text_browser.setHtml(html)
-        self.text_browser.verticalScrollBar().setValue(
-            temp * self.text_browser.total_length())
+        # flag = self.task_widget.stackedWidget_3.currentIndex()
+        flag = self.page_turning
+        if flag == 0:
+            read_info: LatestRead = self.task_widget._inf.novel_read_infos.get('latest_read')
+            if read_info:
+                temp = read_info.float_percent
+            self.text_browser.setHtml(html)
+            if read_info:
+                self.text_browser.verticalScrollBar().setValue(
+                    temp * self.text_browser.total_length())
+        else:
+            self.auto_split.renderOk(line_height=self.line_height,
+                                     messages=message,
+                                     indent_size=value,
+                                     margin_size=margin_size,
+                                     font_size=font_size,
+                                     letter_spacing=letter_spacing,
+                                     font_family=self.family)
         self.indent = value
 
     def updateMarginWidth(self, value: int) -> None:
@@ -648,10 +742,24 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                                           font_size=font_size,
                                           letter_spacing=letter_spacing,
                                           font_family=self.family)
-        temp = self.task_widget._inf.novel_read_infos.get('percent', 0)
-        self.text_browser.setHtml(html)
-        self.text_browser.verticalScrollBar().setValue(
-            temp * self.text_browser.total_length())
+        # flag = self.task_widget.stackedWidget_3.currentIndex()
+        flag = self.page_turning
+        if flag == 0:
+            read_info: LatestRead = self.task_widget._inf.novel_read_infos.get('latest_read')
+            if read_info:
+                temp = read_info.float_percent
+            self.text_browser.setHtml(html)
+            if read_info:
+                self.text_browser.verticalScrollBar().setValue(
+                    temp * self.text_browser.total_length())
+        else:
+            self.auto_split.renderOk(line_height=self.line_height,
+                                     messages=message,
+                                     indent_size=indent,
+                                     margin_size=value,
+                                     font_size=font_size,
+                                     letter_spacing=letter_spacing,
+                                     font_family=self.family)
         self.margin = value
 
     def groupPolicy(self) -> None:
@@ -890,9 +998,14 @@ class ChapterWidget(QWidget, ChapterUi):  # 阅读详情页面
 
     @pyqtSlot(QListWidgetItem)
     def gotoByBookMark(self, item: QListWidgetItem) -> None:
+        # flag = self.task_widget.stackedWidget_3.currentIndex()
+        flag = self.task_widget.more_widget.page_turning
         book_mark: Markup = item.data(Qt.UserRole)
         self.pushButton.click()
-        self.text_browser.jump_chapter(book_mark.index, book_mark.percent)
+        if flag == 0:
+            self.text_browser.jump_chapter(book_mark.index, book_mark.percent)
+        else:
+            self.task_widget.auto_split.jump_chapter(book_mark.index, book_mark.percent)
         self.msg_label.setText(
             f'当前阅读: {book_mark.chapter} -- 共{self.listWidget.count()}章')
         self.task_widget.stackedWidget_2.setCurrentIndex(0)
@@ -900,10 +1013,15 @@ class ChapterWidget(QWidget, ChapterUi):  # 阅读详情页面
 
     @pyqtSlot(QListWidgetItem)
     def gotoByChapter(self, item: QListWidgetItem) -> None:
+        # flag = self.task_widget.stackedWidget_3.currentIndex()
+        flag = self.task_widget.more_widget.page_turning
         index = item.data(Qt.UserRole)
         chapter = item.data(Qt.UserRole + 1)
         self.pushButton.click()
-        self.text_browser.jump_chapter(index)
+        if flag == 0:
+            self.text_browser.jump_chapter(index)
+        else:
+            self.task_widget.auto_split.jump_chapter(index)
         self.msg_label.setText(
             f'当前阅读: {chapter} -- 共{self.listWidget.count()}章')
         self.task_widget.stackedWidget_2.setCurrentIndex(0)
@@ -959,9 +1077,12 @@ class StyleHandler(object):  # 设置阅读主题
             h = self.current_hover if hover is None else hover
             self.setReadStyle(b, t, self.current_theme, h)
 
-    def __init__(self, textbrowser: TaskReadBrowser, task_wiget: 'TaskWidget',
-                 novel_widget: 'NovelWidget', main_gui) -> None:
+    def __init__(self, textbrowser: TaskReadBrowser,
+                 autosplit: AutoSplitContentTaskReadWidget,
+                 task_wiget: 'TaskWidget', novel_widget: 'NovelWidget',
+                 main_gui) -> None:
         self.textbrowser = textbrowser
+        self.autosplit = autosplit
         self.task_widget = task_wiget
         self.novel_widget = novel_widget
         self.main_gui = main_gui
@@ -969,6 +1090,19 @@ class StyleHandler(object):  # 设置阅读主题
         self.current_text = None
         self.current_theme = ''
         self.current_hover = None
+
+    def _set_autosplit_style(self, bkg_color, text_color, theme, hover_color,
+                             bkg_image):
+        use_custom = self.task_widget.more_widget.use_custom
+        if use_custom:
+            img_source = self.task_widget.more_widget.cust_image
+            bkg_color = bkg_color
+            text_color = self.task_widget.more_widget.cust_f_color
+        else:
+            img_source = self.theme_image.get(theme, '')
+            bkg_color = bkg_color
+            text_color = text_color
+        self.autosplit.setReadStyle(bkg_color, text_color, img_source)
 
     def _set_browser_style(self, bkg_color: ColorTypes, text_color: ColorTypes,
                            theme: str, hover_color: ColorTypes) -> str:
@@ -1073,7 +1207,8 @@ class StyleHandler(object):  # 设置阅读主题
         self.current_text = text_color
         self.current_hover = hover_color
         self.current_theme = theme
-
+        self._set_autosplit_style(bkg_color, text_color, theme, hover_color,
+                                  None)
         self._set_browser_style(b_color, t_color, theme, h_color)
         self._set_maingui_style(b_color, t_color, theme, h_color)
         self._set_novelwiget_style(b_color, t_color, theme, h_color)
@@ -1198,7 +1333,8 @@ class TaskWidget(QWidget, Ui_Form):
             lambda info: self.subscribePageInitPolicy())
         self.read_button.clicked.connect(lambda: self.read_fromlatest())
         self.subscribePageInitPolicy()
-        self.textbrowser_init()
+        self.readwidgets_init()
+
         self.more_button.setHoverLeave(CommonPixmaps.hl_more_svg, ('white', ),
                                        ('#666666', ))
         self.chapters_button_2.setHoverLeave(CommonPixmaps.hl_menu_svg,
@@ -1214,14 +1350,15 @@ class TaskWidget(QWidget, Ui_Form):
                                        ('white', ), ('#666666', ), (22, 30))
         self.skin_button.setHoverLeave(CommonPixmaps.hl_skin_svg, ('white'),
                                        ('#666666'), (30, 30))
+
         self.stackedWidget_2.addWidget(self.chapters_widget)
         self.stackedWidget.setCurrentIndex(0)
         self.exitButtonShowPolicy()
         self.sizedown_button.hide()
         self.sizeup_button.hide()
         self.exit_button.hide()
-        self.style_handle = StyleHandler(self.textBrowser, self,
-                                         self.novel_widget,
+        self.style_handle = StyleHandler(self.textBrowser, self.auto_split,
+                                         self, self.novel_widget,
                                          self.novel_widget.main_gui)
 
     @lasyproperty
@@ -1263,7 +1400,11 @@ class TaskWidget(QWidget, Ui_Form):
             self.mark_button.hide()
 
     def updateRequestState(self) -> None:  # 更新翻页相关状况
-        index = self.textBrowser.current_index
+        flag = self.more_widget.page_turning
+        if flag == 0:
+            index = self.textBrowser.current_index
+        else:
+            index = self.auto_split.current_index
         chapter_listwidget: QListWidget = self.chapters_widget.listWidget
         chapter_listwidget.setCurrentRow(index)
 
@@ -1271,7 +1412,8 @@ class TaskWidget(QWidget, Ui_Form):
     def more_widget(self) -> QWidget:
         widget = MoreWidget(self.novel_widget.main_gui,
                             task_widget=self,
-                            text_browser=self.textBrowser)
+                            text_browser=self.textBrowser,
+                            auto_split=self.auto_split)
         widget.hide()
         return widget
 
@@ -1284,7 +1426,8 @@ class TaskWidget(QWidget, Ui_Form):
     def exitButtonShowPolicy(self) -> None:
         if self._isSubmitWidget():
             self.read_button.show()
-            index = self._inf.novel_read_infos.get('index', -1)
+            read_info = self._inf.getLatestRead()
+            index = read_info.index
             if index > -1:
                 msg = f'继续阅读:{self._inf.novel_chapter_urls[index][1]}'
                 fm = self.read_button.fontMetrics()
@@ -1341,7 +1484,9 @@ class TaskWidget(QWidget, Ui_Form):
             self.mark_button.show()
         current = self.textBrowser.current_index
         chapter = self.textBrowser.current_chapter
-        percent = self._inf.novel_read_infos.get('percent', 0)
+        read_info: LatestRead = self._inf.novel_read_infos.get('latest_read')
+        if read_info:
+            percent = read_info.float_percent
         markup = Markup(current,
                         chapter,
                         percent,
@@ -1359,32 +1504,56 @@ class TaskWidget(QWidget, Ui_Form):
 
     @pyqtSlot(int)
     def updatePercent(self, value: int) -> None:
-        percent = round(value / self.textBrowser.total_length(), 4)
-        if percent >= 0.99:
-            percent = 1
-        self._inf.novel_read_infos['percent'] = percent
-        msg = self.textBrowser.current_chapter + '(%.2f%%)' % (percent * 100)
-        self.chapter_label.setText(msg)
+        flag = self.more_widget.page_turning
+        if flag == 0:
+            paras = self.textBrowser.visableParas()
+            for para in paras:
+                if len(para) >= 5:
+                    line = para
+                    break
+            else:
+                line = ''
+            percent = round(value / self.textBrowser.total_length(), 4)
+            if percent >= 0.99:
+                percent = 1
+            index = self.textBrowser.current_index
+            chapter_name = self.textBrowser.current_chapter 
+            read_info = self._inf.getLatestRead()
+            read_info.float_percent = percent
+            read_info.chapter_name = chapter_name
+            read_info.index = index
+            read_info.line = line
+            msg = chapter_name + '(%.2f%%)' % (percent * 100)
+            self.chapter_label.setText(msg)
 
-    def read_fromlatest(self, target: int = None, jump: bool = False) -> None:
+    def read_fromlatest(self, target: int = None, jump: bool = False, by_first_line: bool=False) -> None:
         self.in_read = True
         self.novel_widget.setSearchBarVisable(False)
         self.novel_widget.main_gui.titleBar.hide()
         self.stackedWidget.setCurrentIndex(1)
+
+        page_turning = self.more_widget.page_turning
+        self.current_read_widget = self.textBrowser if page_turning == 0 else self.auto_split
+        self.stackedWidget_3.setCurrentIndex(page_turning)  # 翻页方式
+
         self.textBrowser.task_widget = self
         self.chapter_label.setText('')
-        chapter_name = self._inf.novel_read_infos.get('chapter', '')
+
+        latest = self._inf.getLatestRead()
+        chapter_name = latest.chapter_name
+        index = target if target is not None else latest.index
+        index = 0 if index == -1 else index
+
         indent = self.more_widget.indent
         margin = self.more_widget.margin
         font_size = self.more_widget.font_size
-        index = target if target is not None else self._inf.novel_read_infos.get(
-            'index', 0)
-        theme = self.more_widget.theme
         family = self.more_widget.family
         letter_spacing = self.more_widget.letter_spacing
         book_name = self._inf.novel_name + f'  [{self._inf.novel_site}]'
         line_height = self.more_widget.line_height
+        theme = self.more_widget.theme
         self.readbar_widget.book_name = book_name
+
         if self.more_widget.use_custom:
             self.setReadStyle(self.more_widget.cust_b_color,
                               self.more_widget.cust_f_color, None)
@@ -1394,17 +1563,21 @@ class TaskWidget(QWidget, Ui_Form):
         flag = 0 if jump == False else 2
         if jump:
             self.textBrowser.jump_percent = 0
-        self.textBrowser.request_chapter(index, chapter_name, book_name,
+        if page_turning == 1:
+            self.current_read_widget._clearReadLines()
+            if by_first_line:
+                self.auto_split.by_first_line = latest.line
+        self.current_read_widget.request_chapter(index, chapter_name, book_name,
                                          family, indent, margin, font_size,
                                          letter_spacing, line_height, flag)
-
+        
     def _readbarClick(self) -> None:
         if self.stackedWidget_2.currentIndex() == 1:
             self.stackedWidget_2.setCurrentIndex(0)
         else:
             self.exit_button.click()
 
-    def textbrowser_init(self) -> None:
+    def readwidgets_init(self) -> None:
         main_gui = self.novel_widget.main_gui
         self.readbar_widget.task_widget = self
         self.readbar_widget.exit_button.clicked.connect(self._readbarClick)
@@ -1413,12 +1586,14 @@ class TaskWidget(QWidget, Ui_Form):
         self.readbar_widget.windowMaximumed.connect(main_gui.showMaximized)
         self.readbar_widget.windowNormaled.connect(main_gui.showNormal)
         self.readbar_widget.windowMoved.connect(main_gui.move)
-        font = self.novel_widget.cust_font
+
+        font: QFont = self.novel_widget.cust_font
         font.setPointSize(13)
         fm = QFontMetrics(font)
         width = fm.width('第一章 我草拟的么大手动阀示范点士大夫的')
         self.chapter_label.setFixedWidth(width)
         self.chapter_label.setFont(QFont('微软雅黑', 10, QFont.Bold))
+
         self.textBrowser.task_widget = self
         self.textBrowser.setFont(font)
         self.text_buttons = QButtonGroup(self)
@@ -1436,7 +1611,12 @@ class TaskWidget(QWidget, Ui_Form):
             self.updatePercent)
         self.textBrowser.verticalScrollBar().setStyleSheet(read_v_style)
 
+        self.auto_split.task_widget = self
+        self.auto_split.font_family = font.family()
+        self.auto_split.font_size = font.pointSize()
+
     def readButtonsPolicy(self) -> None:
+        current_read = self.current_read_widget
         checked = self.text_buttons.checkedButton()
         if checked == self.sizeup_button:
             font = self.textBrowser.font()
@@ -1453,12 +1633,15 @@ class TaskWidget(QWidget, Ui_Form):
         elif checked == self.more_button:
             self.chapters_widget.hide()
             self.showMoreWidget(True)
+            # print('-' * 50)
+            # print(self.textBrowser.visableText())
+            # print('-' * 50)
         elif checked == self.markup_button:
             self.addMarkUp()
         elif checked == self.prev_button:
-            self.textBrowser.preview_chapter()
+            current_read.preview_chapter()
         elif checked == self.next_button:
-            self.textBrowser.next_chapter()
+            current_read.next_chapter()
         elif checked == self.chapters_button_2:
             self.showChaptersWidget(True)
             self.more_widget.hide()

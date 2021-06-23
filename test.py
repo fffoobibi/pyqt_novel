@@ -1,10 +1,10 @@
 import sys, os
 from typing import Any, Iterable, List, Sequence
 
-from PyQt5.QtWidgets import QFrame, QSizePolicy, QSpacerItem, QWidget, QApplication, QHBoxLayout, QVBoxLayout, QPushButton, QLabel
-from PyQt5.QtCore import QSize, Qt, QStandardPaths, QFile, QFileInfo, QDir, pyqtSignal, pyqtSlot
-from PyQt5.QtGui import QColor, QFont, QFontMetrics, QPainter, QPalette, QPixmap, QIcon
-
+from PyQt5.QtWidgets import QFrame, QListWidget, QPlainTextEdit, QSizePolicy, QSpacerItem, QTextBrowser, QTextEdit, QWidget, QApplication, QHBoxLayout, QVBoxLayout, QPushButton, QLabel
+from PyQt5.QtCore import QPoint, QSize, Qt, QStandardPaths, QFile, QFileInfo, QDir, pyqtSignal, pyqtSlot
+from PyQt5.QtGui import QColor, QFont, QFontMetrics, QPainter, QPalette, QPixmap, QIcon, QTextBlock, QTextCursor, QTextLayout
+from pyqt_app.styles import listwidget_v_scrollbar
 file = r"C:/Users/fqk12/Desktop/v2-0009da0ab94c0bd0bcff4823e1fc0586_r.jpg"
 
 class ReadWidget(QWidget):
@@ -213,18 +213,77 @@ class ReadWidget(QWidget):
                         res['content'].append(line.strip())
         return res
 
+class Test(QTextBrowser):
+    def __init__(self) -> None:
+        super().__init__()
+        htmls =[f'<p>{i}: sdfsdf\ngdg\n</p>' for i in range(30)]
+        self.setHtml(''.join(htmls))
+        
 
 class Widget(QWidget):
     def __init__(self) -> None:
         super().__init__()
-        self.read_widget = ReadWidget()
+        # self.read_widget = ReadWidget()
+        self.resize(600, 400)
+        self.read_widget = Test()
+        self.read_widget.verticalScrollBar().setStyleSheet(listwidget_v_scrollbar)
+        self.read_widget.verticalScrollBar().valueChanged.connect(self.testV)
         v = QVBoxLayout(self)
         v.setContentsMargins(0, 0, 0, 0)
         v.addWidget(self.read_widget)
-        v.addWidget(QPushButton('next', clicked=self.nn))
-        v.addWidget(QPushButton('previous', clicked=self.pp))
-        self.resize(600, 500)
+        v.addWidget(QPushButton('test', clicked=self.test))
+        # v.addWidget(QPushButton('next', clicked=self.nn))
+        # v.addWidget(QPushButton('previous', clicked=self.pp))
+    def test(self):
+        document = self.read_widget.document()
+        bl = document.firstBlock()
+        res = []
+        blocks = []
+        # print(document.blockCount())
+        for i in range(document.blockCount()):
+            block = document.findBlockByNumber(i)
+            geo = block.layout().boundingRect()
+            geo.setTopLeft(block.layout().position())
+            res.append(geo.center().y())
+            blocks.append(block)
 
+        minmun = self.read_widget.verticalScrollBar().minimum()
+        page_step = self.read_widget.verticalScrollBar().pageStep() 
+        total = self.read_widget.document().size().height()
+        current = self.read_widget.verticalScrollBar().value()
+
+        s1 = current - minmun
+        s2 = page_step
+        s3 = total - s1- s2
+
+        # y1 = total * s1 / (s1 + s2 + s3)
+        y1 = (current - minmun) * total / page_step
+        y2 = total * s2 / (s1 + s2 + s3)
+        y3 = total * s3 / (s1 + s2 + s3)
+        y3 = total - page_step - current + minmun
+        
+        print('current: ', current/total)
+        distances = list(map(lambda e: abs(e - y1), res))
+
+        rel: QTextBlock = blocks[distances.index(min(distances))]
+        print(rel.blockNumber(), rel.text())
+        print(self.read_widget.height())
+      
+        cursor = self.read_widget.cursorForPosition(QPoint(0, 0));
+        bottom_right = QPoint(self.read_widget.viewport().width() - 1, self.read_widget.viewport().height() - 1)
+        end_pos = self.read_widget.cursorForPosition(bottom_right).position()
+        cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
+        print(repr(cursor.selectedText()))
+
+
+    def testV(self, v):
+        max = self.read_widget.verticalScrollBar().maximum()
+        min = self.read_widget.verticalScrollBar().minimum()
+        page_step = self.read_widget.verticalScrollBar().pageStep()
+
+        print( v / page_step, (max - min +page_step)/ page_step)
+        
+        
     def nn(self):
         self.read_widget.next_page()
         self.sender().setText('next: %s' % (self.read_widget.current_page + 1))

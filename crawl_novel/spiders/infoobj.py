@@ -8,7 +8,7 @@ from dataclasses import dataclass, field, asdict
 from hashlib import md5
 from datetime import datetime
 from threading import Lock
-from typing import Callable, Optional
+from typing import Callable, ChainMap, Optional
 from enum import Enum
 from copy import deepcopy
 
@@ -74,6 +74,31 @@ class Markup(object):
             self.__dict__[key] = value[key]
         return self
 
+@dataclass
+class LatestRead(object):
+    index: int = -1
+    chapter_name: str = None
+    percent: int = 0
+    type: int = -1
+    float_percent: float= 0.0
+    line: str = ''
+
+    def __eq__(self, other) -> bool:
+        if isinstance(other, self.__class__):
+            return hash(self) == hash(other)
+        return False
+
+    def __hash__(self) -> int:
+        return hash(f'{self.index}{self.chapter_name}{self.percent}{self.type}')
+
+    def copy(self) -> 'LatestRead':
+        return LatestRead(self.index, self.chapter_name, self.percent, self.type, self.float_percent, self.line)
+
+    def __deepcopy__(self, memo: dict) -> 'LatestRead':
+        return self.copy()
+
+    def as_dict(self) -> dict:
+        return asdict(self)
 
 @dataclass
 class TaskInfo(object):
@@ -151,7 +176,7 @@ class InfoObj(object):
     novel_fresh_state: int = 0  # 更新状态 0,初始化, 1进行中, 2完成更新, 3更新失败
     novel_read_infos: dict = field(
         default_factory=dict
-    )  # 个人阅读记录 # index, chapter_name, percent, book_marks
+    )  # 个人阅读记录 # index, chapter_name, percent, book_marks, latest_read
     novel_chapter_urls: list = field(
         default_factory=list
     )  # 小说章节下载urls [(url, chapter_name, select_state, cache_sate), ...]
@@ -166,6 +191,12 @@ class InfoObj(object):
                 if not isinstance(dic, Markup):
                     res.append(Markup.from_dict(dic))
             self.novel_read_infos['book_marks'] = res
+
+            latest = self.novel_read_infos.get('latest_read', LatestRead())
+            if latest and isinstance(latest, dict):
+                latest_read = LatestRead(**latest)
+                self.novel_read_infos['latest_read'] = latest_read
+
 
     def __eq__(self, other) -> bool:
         if isinstance(other, self.__class__):
@@ -201,6 +232,11 @@ class InfoObj(object):
             if not isinstance(dic, Markup):
                 res.append(Markup.from_dict(dic))
         inf.novel_read_infos['book_marks'] = res
+
+        latest = inf.novel_read_infos.get('latest_read')
+        if isinstance(latest, dict):
+            latest_read = LatestRead(**latest)
+            inf.novel_read_infos['latest_read'] = latest_read
         return inf
 
     @classmethod
@@ -220,6 +256,11 @@ class InfoObj(object):
         for dic in convert:
             res.append(Markup.from_dict(dic))
         inf.novel_read_infos['book_marks'] = res
+
+        latest = inf.novel_read_infos.get('latest_read')
+        if isinstance(latest, dict):
+            latest_read = LatestRead(**latest)
+            inf.novel_read_infos['latest_read'] = latest_read
         return inf
 
     def copy(self) -> 'InfoObj':
@@ -240,16 +281,10 @@ class InfoObj(object):
             mark.copy() for mark in self.novel_read_infos.get('book_marks')
         ]
         dic['book_marks'] = book_marks
-        
-        index = self.novel_read_infos.get('index')
-        chapter = self.novel_read_infos.get('chapter_name')
-        percent = self.novel_read_infos.get('percent')
-        if index is not None:
-            dic['index'] = index
-        if chapter is not None:
-            dic['chapter_name'] = chapter
-        if percent is not None:
-            dic['percent'] = percent
+        read_info = self.getLatestRead()
+        if read_info:
+            copyed = read_info.copy()
+            dic['latest_read'] = copyed
 
         info.novel_read_infos = dic
         return info
@@ -304,6 +339,11 @@ class InfoObj(object):
         for bookmark in copyed.novel_read_infos.get('book_marks', []):
             temp.append(bookmark.as_dict())
         copyed.novel_read_infos['book_marks'] = temp
+
+        read_info = copyed.novel_read_infos.get('latest_read')
+        if read_info is not None:
+            copyed.novel_read_infos['latest_read'] = read_info.copy().as_dict()
+
         if copyed.__dict__.get('_lock'):
             copyed.__dict__.pop('_lock')
         f = open(dum_file_path, 'w', encoding='utf8')
@@ -342,6 +382,8 @@ class InfoObj(object):
         for bookmark in copyed.novel_read_infos.get('book_marks', []):
             temp.append(bookmark.as_dict())
         copyed.novel_read_infos['book_marks'] = temp
+        latest = self.getLatestRead()
+        copyed.novel_read_infos['latest_read'] = latest.copy().as_dict()
         if copyed.__dict__.get('_lock'):
             copyed.__dict__.pop('_lock')
         f = open(dum_file_path, 'w', encoding='utf8')
@@ -474,6 +516,10 @@ class InfoObj(object):
             task.down_chapter = self.novel_chapter_urls[url_index][1]
             task.down_url = self.novel_chapter_urls[url_index][0]
         return task
+
+    def getLatestRead(self) -> LatestRead:
+        self.novel_read_infos.setdefault('latest_read', LatestRead())
+        return self.novel_read_infos.get('latest_read')
 
     def cached_dir(self) -> str:  # 返回缓存目录
         return self.novel_name + self.hexdigest

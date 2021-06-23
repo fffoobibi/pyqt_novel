@@ -29,7 +29,7 @@
    <item>
     <widget class="QStackedWidget" name="stackedWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="page">
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -1005,7 +1005,7 @@ QProgressBar::chunk {
              <number>0</number>
             </property>
             <widget class="QWidget" name="page_3">
-             <layout class="QVBoxLayout" name="verticalLayout_4">
+             <layout class="QVBoxLayout" name="verticalLayout_4" stretch="20,0">
               <property name="spacing">
                <number>0</number>
               </property>
@@ -1022,22 +1022,67 @@ QProgressBar::chunk {
                <number>0</number>
               </property>
               <item>
-               <widget class="TaskReadBrowser" name="textBrowser">
-                <property name="contextMenuPolicy">
-                 <enum>Qt::CustomContextMenu</enum>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true"/>
-                </property>
-                <property name="frameShape">
-                 <enum>QFrame::NoFrame</enum>
-                </property>
-                <property name="verticalScrollBarPolicy">
-                 <enum>Qt::ScrollBarAsNeeded</enum>
-                </property>
-                <property name="horizontalScrollBarPolicy">
-                 <enum>Qt::ScrollBarAlwaysOff</enum>
-                </property>
+               <widget class="QStackedWidget" name="stackedWidget_3">
+                <widget class="QWidget" name="page_5">
+                 <layout class="QVBoxLayout" name="verticalLayout_7">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="TaskReadBrowser" name="textBrowser">
+                    <property name="contextMenuPolicy">
+                     <enum>Qt::CustomContextMenu</enum>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true"/>
+                    </property>
+                    <property name="frameShape">
+                     <enum>QFrame::NoFrame</enum>
+                    </property>
+                    <property name="verticalScrollBarPolicy">
+                     <enum>Qt::ScrollBarAsNeeded</enum>
+                    </property>
+                    <property name="horizontalScrollBarPolicy">
+                     <enum>Qt::ScrollBarAlwaysOff</enum>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+                <widget class="QWidget" name="page_6">
+                 <layout class="QVBoxLayout" name="verticalLayout_6">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="AutoSplitContentTaskReadWidget" name="auto_split" native="true"/>
+                  </item>
+                 </layout>
+                </widget>
                </widget>
               </item>
               <item>
@@ -1308,6 +1353,12 @@ QProgressBar::chunk {
   </customwidget>
   <customwidget>
    <class>ReadBar</class>
+   <extends>QWidget</extends>
+   <header location="global">customwidgets</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>AutoSplitContentTaskReadWidget</class>
    <extends>QWidget</extends>
    <header location="global">customwidgets</header>
    <container>1</container>

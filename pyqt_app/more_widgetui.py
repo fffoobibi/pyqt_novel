@@ -75,7 +75,7 @@ class Ui_Form(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 108, 443))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 725, 605))
         self.scrollAreaWidgetContents.setStyleSheet("QSlider::groove:horizontal {\n"
 "border: 1px solid #4A708B;\n"
 "background: #C0C0C0;\n"
@@ -629,10 +629,67 @@ class Ui_Form(object):
         spacerItem8 = QtWidgets.QSpacerItem(17, 191, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout_3.addItem(spacerItem8)
         self.stackedWidget.addWidget(self.page_2)
+        self.page_3 = QtWidgets.QWidget()
+        self.page_3.setStyleSheet("font-family: 宋体;\n"
+"font-size: 11pt;\n"
+"color: #FFFFFF")
+        self.page_3.setObjectName("page_3")
+        self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.page_3)
+        self.verticalLayout_5.setContentsMargins(0, 0, 0, 20)
+        self.verticalLayout_5.setObjectName("verticalLayout_5")
+        self.frame_12 = QtWidgets.QFrame(self.page_3)
+        self.frame_12.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.frame_12.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_12.setObjectName("frame_12")
+        self.horizontalLayout_12 = QtWidgets.QHBoxLayout(self.frame_12)
+        self.horizontalLayout_12.setObjectName("horizontalLayout_12")
+        self.label_14 = QtWidgets.QLabel(self.frame_12)
+        self.label_14.setObjectName("label_14")
+        self.horizontalLayout_12.addWidget(self.label_14)
+        spacerItem9 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_12.addItem(spacerItem9)
+        self.verticalLayout_5.addWidget(self.frame_12)
+        self.frame_13 = QtWidgets.QFrame(self.page_3)
+        self.frame_13.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.frame_13.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_13.setObjectName("frame_13")
+        self.horizontalLayout_13 = QtWidgets.QHBoxLayout(self.frame_13)
+        self.horizontalLayout_13.setContentsMargins(-1, 0, -1, 0)
+        self.horizontalLayout_13.setObjectName("horizontalLayout_13")
+        self.read_combo = QtWidgets.QComboBox(self.frame_13)
+        self.read_combo.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
+        self.read_combo.setStyleSheet("QComboBox{border: 1px solid white;border-radius:3px}\n"
+"QComboBox:focus{border: 1px solid #CC295F;border-radius:3px}\n"
+"\n"
+"QComboBox QAbstractItemView\n"
+"{border: 1px solid rgb(161,161,161);outline:0px\n"
+"}\n"
+"QComboBox QAbstractItemView::item\n"
+"{ height: 24px;background-color: black; color:#aaaaaa;\n"
+"}\n"
+"QComboBox QAbstractItemView::item:hover\n"
+"{ height: 24px;background-color: black; color:#aaaaaa\n"
+"}\n"
+"QComboBox QAbstractItemView::item:selected\n"
+"{    \n"
+"    background-color: #2b2b2b; color: #aaaaaa; outline:0px\n"
+"}\n"
+"\n"
+"")
+        self.read_combo.setObjectName("read_combo")
+        self.read_combo.addItem("")
+        self.read_combo.addItem("")
+        self.horizontalLayout_13.addWidget(self.read_combo)
+        spacerItem10 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_13.addItem(spacerItem10)
+        self.verticalLayout_5.addWidget(self.frame_13)
+        spacerItem11 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout_5.addItem(spacerItem11)
+        self.stackedWidget.addWidget(self.page_3)
         self.verticalLayout.addWidget(self.stackedWidget)
 
         self.retranslateUi(Form)
-        self.stackedWidget.setCurrentIndex(1)
+        self.stackedWidget.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
@@ -655,4 +712,7 @@ class Ui_Form(object):
         self.label_10.setText(_translate("Form", "背景色:"))
         self.label_11.setText(_translate("Form", "字体色:"))
         self.label_13.setText(_translate("Form", "背景图片:"))
+        self.label_14.setText(_translate("Form", "翻页方式"))
+        self.read_combo.setItemText(0, _translate("Form", "滚动"))
+        self.read_combo.setItemText(1, _translate("Form", "水平"))
 from .customwidgets import FontCombobox

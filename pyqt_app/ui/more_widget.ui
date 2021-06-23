@@ -113,7 +113,7 @@ QPushButton:hover{image: url(:/ico/close_128px_1175741_easyicon.net.ico);width:2
       <string notr="true"/>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="page">
       <property name="styleSheet">
@@ -142,8 +142,8 @@ border:none</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>108</width>
-            <height>443</height>
+            <width>725</width>
+            <height>605</height>
            </rect>
           </property>
           <property name="styleSheet">
@@ -1267,6 +1267,140 @@ border-radius:3px</string>
           <size>
            <width>17</width>
            <height>191</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="page_3">
+      <property name="styleSheet">
+       <string notr="true">font-family: 宋体;
+font-size: 11pt;
+color: #FFFFFF</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_5">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>20</number>
+       </property>
+       <item>
+        <widget class="QFrame" name="frame_12">
+         <property name="frameShape">
+          <enum>QFrame::NoFrame</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_12">
+          <item>
+           <widget class="QLabel" name="label_14">
+            <property name="text">
+             <string>翻页方式</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_8">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QFrame" name="frame_13">
+         <property name="frameShape">
+          <enum>QFrame::StyledPanel</enum>
+         </property>
+         <property name="frameShadow">
+          <enum>QFrame::Raised</enum>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_13">
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="QComboBox" name="read_combo">
+            <property name="cursor">
+             <cursorShape>PointingHandCursor</cursorShape>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">QComboBox{border: 1px solid white;border-radius:3px}
+QComboBox:focus{border: 1px solid #CC295F;border-radius:3px}
+
+QComboBox QAbstractItemView
+{border: 1px solid rgb(161,161,161);
+}
+QComboBox QAbstractItemView::item
+{ height: 24px;
+}
+QComboBox QAbstractItemView::item:hover
+{ height: 24px;background: black;color:#CC295F
+}
+QComboBox QAbstractItemView::item:selected
+{	
+    background-color: rgb(54, 98, 180);
+}
+
+</string>
+            </property>
+            <item>
+             <property name="text">
+              <string>滚动</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>水平</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_9">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_3">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
           </size>
          </property>
         </spacer>

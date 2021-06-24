@@ -6,11 +6,11 @@ from enum import Enum
 from types import MethodType
 from typing import Any, Callable, List, Union
 
-from PyQt5.QtWidgets import (QButtonGroup, QCheckBox, QDialog, QFrame, QHBoxLayout,
-                             QLabel, QListWidget, QListWidgetItem, QPushButton,
-                             QStyle, QVBoxLayout, QWidget, QApplication, QMenu,
-                             QStyledItemDelegate, QStyleOptionViewItem,
-                             QFileDialog)
+from PyQt5.QtWidgets import (QButtonGroup, QCheckBox, QDialog, QFrame,
+                             QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
+                             QPushButton, QStyle, QTextBrowser, QVBoxLayout, QWidget,
+                             QApplication, QMenu, QStyledItemDelegate,
+                             QStyleOptionViewItem, QFileDialog)
 from PyQt5.QtCore import (QDir, QFileInfo, QSettings, pyqtSignal, pyqtSlot,
                           QSize, Qt, QModelIndex, QStandardPaths)
 from PyQt5.QtGui import (QImage, QPixmap, QColor, QPainter, QPen, QCursor,
@@ -280,7 +280,8 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
     def cust_image(self):
         ...
 
-    @settings_property([], lambda result: [file for file in result if os.path.exists(file)])
+    @settings_property(
+        [], lambda result: [file for file in result if os.path.exists(file)])
     def cust_images(self):
         ...
 
@@ -529,7 +530,6 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         self.task_widget.style_handle.reload()
 
     @pyqtSlot(str)
-    
     def _changeLetter(self, v: str) -> None:  # 更该字符间距
         latested = self.info.getLatestRead()
         space = int(v) if v else 0
@@ -625,15 +625,17 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         self.read_combo.setCurrentIndex(self.page_turning)
         use_cust_image = self.use_cust_image
         self.use_image_checkbox.setChecked(use_cust_image)
-        self.use_image_checkbox.setText( '开' if use_cust_image else '关')
+        self.use_image_checkbox.setText('开' if use_cust_image else '关')
 
     @pyqtSlot(int)
     def updatePageTurning(self, index: int) -> None:  # 更改翻页方式
         self.page_turning = index
         latestd = self.info.getLatestRead()
-        if index == 0:
-            self.task_widget.read_fromlatest(flag_action=FlagAction.split_to_scroll)
-        elif index == 1:
+        if index == 0:  # 当前处于auto_split
+            self.task_widget.read_fromlatest(
+                flag_action=FlagAction.split_to_scroll)
+        elif index == 1:  # 当前处于textbrowser
+            self.task_widget.flushLatested()
             self.task_widget.read_fromlatest(
                 use_latested_line=True,
                 is_title=latestd.is_title,
@@ -671,7 +673,6 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                                      by_first_line=latested.line)
         self.family = family
 
-    
     def updateFontSize(self, value: int) -> None:  # 更改字体大小
         latested = self.info.getLatestRead()
         self.label.setText(f'字体大小: {value}')
@@ -703,7 +704,6 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                                      by_first_line=latested.line)
         self.font_size = value
 
-    
     def updateLineSpace(self, value: int) -> None:  # 更改行距
         latested = self.info.getLatestRead()
         self.label_2.setText(f'多倍行距: {value/100:.1f}')
@@ -736,7 +736,6 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                                      by_first_line=latested.line)
         self.line_height = line_height
 
-    
     def updateIndentWidth(self, value: int) -> None:  # 更改indent
         latested = self.info.getLatestRead()
         self.label_5.setText(f'首行缩进: {value}')
@@ -768,7 +767,6 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                                      by_first_line=latested.line)
         self.indent = value
 
-    
     def updateMarginWidth(self, value: int) -> None:  # 更改margin
         latested = self.info.getLatestRead()
         self.label_6.setText(f'边距大小: {value}')
@@ -1042,7 +1040,8 @@ class ChapterWidget(QWidget, ChapterUi):  # 阅读详情页面
         if flag == 0:
             self.text_browser.jump_chapter(book_mark.index, book_mark.percent)
         else:
-            self.task_widget.auto_split.jump_from_bookmark(book_mark.index, book_mark.content, book_mark.is_title)
+            self.task_widget.auto_split.jump_from_bookmark(
+                book_mark.index, book_mark.content, book_mark.is_title)
         self.msg_label.setText(
             f'当前阅读: {book_mark.chapter} -- 共{self.listWidget.count()}章')
         self.task_widget.stackedWidget_2.setCurrentIndex(0)
@@ -1541,30 +1540,17 @@ class TaskWidget(QWidget, Ui_Form):
                 f'已添加书签: {markup.chapter}({markup.percent * 100:.2f}%)', True,
                 msg_color)
 
+    def flushLatested(self, p_value: int = None):  # 刷新最近阅读信息
+        if self.more_widget.page_turning == 0:
+            self.textBrowser.flushLatested(p_value)
+
     @pyqtSlot(int)
     def updatePercent(self, value: int) -> None:
-        flag = self.more_widget.page_turning
-        if flag == 0:
-            line = self.textBrowser.firstVisablePara()
+        if self.more_widget.page_turning == 0:
             percent = round(value / self.textBrowser.total_length(), 4)
-            if percent >= 0.99:
-                percent = 1
-            index = self.textBrowser.current_index
+            percent = 1 if percent >= .99 else percent
+            self.flushLatested(value)
             chapter_name = self.textBrowser.current_chapter
-
-            read_info = self._inf.getLatestRead()
-            read_info.float_percent = percent
-            read_info.chapter_name = chapter_name
-            read_info.index = index
-            read_info.line = line
-            read_info.is_title = True if line.strip() == chapter_name else False
-            read_info.page_step = self.textBrowser.verticalScrollBar(
-            ).pageStep()
-            read_info.min = self.textBrowser.verticalScrollBar().minimum()
-            read_info.max = self.textBrowser.verticalScrollBar().maximum()
-            read_info.value = value
-            # print('update_percent: ', percent, read_info.float_percent)
-            # print('update: ', self.textBrowser.verticalScrollBar().pageStep(), self.textBrowser.document().size().height(), percent)
             msg = chapter_name + '(%.2f%%)' % (percent * 100)
             self.chapter_label.setText(msg)
 
@@ -1580,7 +1566,7 @@ class TaskWidget(QWidget, Ui_Form):
 
         page_turning = self.more_widget.page_turning
         self.current_read_widget = self.textBrowser if page_turning == 0 else self.auto_split
-        self.stackedWidget_3.setCurrentIndex(page_turning)  # 
+        self.stackedWidget_3.setCurrentIndex(page_turning)  #
         if page_turning == 0:
             self.markup_button.show()
         else:
@@ -1617,13 +1603,15 @@ class TaskWidget(QWidget, Ui_Form):
                 self.auto_split.is_title = is_title
             self.auto_split.request_chapter(index, chapter_name, book_name,
                                             family, indent, margin, font_size,
-                                            letter_spacing, line_height, flag_action)
+                                            letter_spacing, line_height,
+                                            flag_action)
         else:
             if flag_action == FlagAction.jump_chapter:
                 self.textBrowser.jump_percent = 0
             self.textBrowser.request_chapter(index, chapter_name, book_name,
                                              family, indent, margin, font_size,
-                                             letter_spacing, line_height, flag_action)
+                                             letter_spacing, line_height,
+                                             flag_action)
 
     def _readbarClick(self) -> None:
         if self.stackedWidget_2.currentIndex() == 1:
@@ -1687,9 +1675,6 @@ class TaskWidget(QWidget, Ui_Form):
         elif checked == self.more_button:
             self.chapters_widget.hide()
             self.showMoreWidget(True)
-            # print('-' * 50)
-            # print(self.textBrowser.visableText())
-            # print('-' * 50)
         elif checked == self.markup_button:
             self.addMarkUp()
         elif checked == self.prev_button:
@@ -2048,6 +2033,11 @@ class TaskWidget(QWidget, Ui_Form):
                 self._show_mark_button()
             if not self.more_widget.isHidden():
                 self._show_more_widget()
+            # if self.more_widget.page_turning == 0:
+            #     if self._inf:
+            #         lasted = self._inf.getLatestRead()
+            #         print('set: ', lasted.float_percent)
+            #         self.textBrowser.verticalScrollBar().setValue(lasted.float_percent)
 
     @pyqtSlot()
     def nextInf(self) -> None:
@@ -2066,9 +2056,7 @@ class TaskWidget(QWidget, Ui_Form):
                 next_inf = widget.info
                 self.showFullMessage(next_inf)
                 self.autoProcessFlags()
-                # inf.novel_app._parent.selectdialog.inf = next_inf
                 self._inf = next_inf
-                # self.textBrowser.info = next_inf
         else:
             if inf.novel_index < total:
                 subscribe_widget = novel_app.getSubscribeWidget(
@@ -2077,9 +2065,7 @@ class TaskWidget(QWidget, Ui_Form):
                 self.showFullMessage(next_inf)
                 self.autoProcessSubmitFlags()
                 self.exitButtonShowPolicy()
-                # inf.novel_app._parent.selectdialog.inf = next_inf
                 self._inf = next_inf
-                # self.textBrowser.info = next_inf
         self.subscribePageInitPolicy(False)
 
     @pyqtSlot()

@@ -3508,6 +3508,9 @@ class BaseTaskReadPropertys(object):
     def renderFail(self, *args, **kwargs) -> str:
         pass
 
+    def flushLatested(self, p_value:int=None): # 更新最近阅读信息
+        pass
+
     def readTextColor(self) -> str:
         pass
 
@@ -3733,6 +3736,7 @@ class AutoSplitContentTaskReadWidget(QWidget,
             msg = chapter_name + f'({self.current_page+1}/{self.pageCount()})'
 
         elif self.flag == FlagAction.scroll_to_split:  # 翻页转换
+            # print('scroll -> split ', self.by_first_line, self.current_chapter)
             self.computePages(content,
                               latest.percent,
                               by_first_line=self.by_first_line,
@@ -3747,9 +3751,9 @@ class AutoSplitContentTaskReadWidget(QWidget,
                               is_title=False)
             msg = chapter_name + f'({self.current_page+1}/{self.pageCount()})'
             # self.update_latest()
-        self.update_latest()
         self.task_widget.load_chapter_init(msg)
         self.content_length = len(''.join(content))
+        self.update_latest()
 
     def paintEvent(self, event) -> None:
         super().paintEvent(event)
@@ -3806,14 +3810,19 @@ class AutoSplitContentTaskReadWidget(QWidget,
                      dst_flag: bool = False,
                      by_first_line: str = None,
                      is_title: bool = True):  # 计算章节所需页数
+
+        latested = self.info.getLatestRead()
         height = self._textHeight()
         title_height = self._titleHeight()
+
         if is_title is not None:
             self.is_title = is_title
+
         if self.is_title:
             self.__split_from_contents(lines, index, dst_flag)
+
         elif by_first_line is not None and by_first_line.strip(
-        ) == self.current_chapter:
+        ) == latested.chapter_name: # first
             self.__split_from_contents(lines, 0, dst_flag)
 
         elif by_first_line is not None and by_first_line and is_title == False:
@@ -4180,6 +4189,7 @@ class AutoSplitContentTaskReadWidget(QWidget,
 
 
 class TaskReadBrowser(QTextBrowser, BaseTaskReadPropertys):
+
     def visableText(self) -> str:
         cursor = self.cursorForPosition(QPoint(0, 0))
         bottom_right = QPoint(self.viewport().width() - 1,
@@ -4198,15 +4208,18 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadPropertys):
     def firstVisablePara(self) -> str:
         return self.visableParas()[0].strip()
 
-    def to_int_percent(self) -> int:
-        pass
-
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
             if not self.task_widget.more_widget.isHidden():
                 self.task_widget.more_widget.hide()
         return super().mousePressEvent(event)
 
+    def resizeEvent(self, event) -> None:
+        latested = self.info.getLatestRead()
+        if self.sender() is None:
+            self.verticalScrollBar().setValue(latested.float_percent * self.total_length())
+        super().resizeEvent(event)
+        
     @lasyproperty
     def _template(self) -> jinja2.Template:
         f_loader = FileSystemLoader("./tpls")
@@ -4228,6 +4241,26 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadPropertys):
         for key in kwargs.keys():
             setattr(self, key, kwargs[key])
         return self._failtemplate.render(*args, **kwargs)
+
+    def flushLatested(self, p_value:int=None):
+        line = self.firstVisablePara()
+        bar = self.verticalScrollBar()
+        value = bar.value() if p_value is None else p_value
+        percent = round(value / self.total_length(), 4)
+        if percent >= 0.99:
+            percent = 1
+        index = self.current_index
+        chapter_name = self.current_chapter
+        latested = self.info.getLatestRead()
+        latested.float_percent = percent
+        latested.chapter_name = chapter_name
+        latested.index = index
+        latested.line = line
+        latested.is_title = True if line.strip() == chapter_name else False
+        latested.page_step = bar.pageStep()
+        latested.min = bar.minimum()
+        latested.max = bar.maximum()
+        latested.value = value
 
     @pyqtSlot(dict)
     def failUpdateChapter(self, message: dict) -> None:
@@ -4260,7 +4293,7 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadPropertys):
             font_size=self.font_size,
             letter_spacing=self.letter_spacing,
         )
-        blocked = self.verticalScrollBar().blockSignals(True)
+        self.verticalScrollBar().blockSignals(True)
         self.setHtml(html)
         chapter_name = messages["chapter"]
         if self.flag == FlagAction.first_in:  # 初次进入
@@ -4272,12 +4305,14 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadPropertys):
                                                    (percent * 100))
             else:
                 self.task_widget.load_chapter_init(chapter_name)
+
         elif self.flag == FlagAction.next_chapter:  # next, preview
             self.task_widget.load_chapter_init(chapter_name)
             latest.float_percent = 0
             latest.line = chapter_name.strip()
             latest.is_title = True
             self.verticalScrollBar().setValue(0)
+
         elif self.flag == FlagAction.jump_chapter:  # 带percent跳转
             self.verticalScrollBar().setValue(self.jump_percent *
                                               self.total_length())
@@ -4290,6 +4325,8 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadPropertys):
             self.task_widget.load_chapter_init(chapter_name + "(%.2f%%)" %
                                                (latest.float_percent * 100))
 
+        self.flushLatested()
+
         markup = self.task_widget.info.bookmark_exists(self.current_index,
                                                        self.current_chapter)
         if markup:
@@ -4299,8 +4336,9 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadPropertys):
             self.current_mark = None
             self.task_widget.mark_button.hide()
         self.task_widget.updateRequestState()
+        value = self.verticalScrollBar().value()
         self.verticalScrollBar().blockSignals(False)
-
+        
     def total_length(self) -> int:
         length = (self.verticalScrollBar().maximum() -
                   self.verticalScrollBar().minimum() + 1)

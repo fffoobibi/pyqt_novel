@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="ico">
+    <file>开关-开.svg</file>
+    <file>开关-关.svg</file>
     <file>省略号.svg</file>
     <file>蜘蛛万圣节.svg</file>
     <file>蜘蛛.svg</file>

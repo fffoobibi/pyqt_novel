@@ -1,4 +1,4 @@
-from .spiders.infoobj import InfoObj, InfTools, DownStatus, Markup, TaskInfo
+from .spiders.infoobj import InfoObj, InfTools, DownStatus, Markup, TaskInfo, LatestRead
 from .spiders.downtasks import BasicFileDownTask, ImgDownTask, register, BasicChapterDownTask, FileDownloader, ChapterDownloader, get_handle_cls
 from .spiders.filesspider import *
 from .spiders.bailin import EightSpider

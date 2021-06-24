@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (QWidget, QApplication, QButtonGroup, QFileDialog,
 from PyQt5.QtCore import (Qt, QStandardPaths, QDir, pyqtSignal, pyqtSlot,
                           QSize, QThread, QThreadPool, QSettings, QUrl,
                           QFileInfo, QFile, QSemaphore)
-from PyQt5.QtGui import QIcon, QMovie, QPalette, QPixmap, QDesktopServices, QFont, QColor
+from PyQt5.QtGui import QIcon, QMovie, QPixmap, QDesktopServices, QFont, QColor
 
 from typing import List, Any, Tuple
 from queue import Queue  # 调度下载

@@ -29,6 +29,7 @@ class DownStatus(str, Enum):
             if member == value:
                 return member
 
+
 class _lasyproperty(object):
     def __init__(self, func):
         self.func = func
@@ -47,7 +48,8 @@ class Markup(object):
     chapter: str = ''
     percent: float = 0
     create_time: str = field(default_factory=lambda: str(datetime.now()))
-    content: str = ''
+    content: str = '' # 当前可见第一行
+    is_title: bool= False # 是否是章节名
 
     def __eq__(self, other) -> bool:
         if isinstance(other, self.__class__):
@@ -60,28 +62,34 @@ class Markup(object):
     def as_dict(self) -> dict:
         return asdict(self)
 
-    def copy(self) -> 'MarkUp':
+    def copy(self) -> 'Markup':
         return Markup(self.index, self.chapter, self.percent, self.create_time,
-                      self.content)
+                      self.content, self.is_title)
 
-    def __deepcopy__(self, memo: dict) -> 'MarkUp':
+    def __deepcopy__(self, memo: dict) -> 'Markup':
         return self.copy()
 
     @classmethod
-    def from_dict(cls, value: dict) -> 'MarkUp':
+    def from_dict(cls, value: dict) -> 'Markup':
         self = cls()
         for key in value.keys():
             self.__dict__[key] = value[key]
         return self
 
+
 @dataclass
 class LatestRead(object):
-    index: int = -1
-    chapter_name: str = None
-    percent: int = 0
-    type: int = -1
-    float_percent: float= 0.0
-    line: str = ''
+    index: int = -1  # 阅读url index
+    chapter_name: str = None  # 章节名
+    percent: int = 0  # 水平阅读:分页index
+    type: int = -1  # 未定义
+    float_percent: float = 0.0  # 滚动阅读: 进度
+    line: str = ''  # 当前可见第一行
+    is_title: bool = False # 是否是章节名
+    page_step: int = -1  # 文档步长
+    min: float = 0
+    max: float = 0
+    value: float = 0
 
     def __eq__(self, other) -> bool:
         if isinstance(other, self.__class__):
@@ -89,16 +97,20 @@ class LatestRead(object):
         return False
 
     def __hash__(self) -> int:
-        return hash(f'{self.index}{self.chapter_name}{self.percent}{self.type}')
+        return hash(
+            f'{self.index}{self.chapter_name}{self.percent}{self.type}')
 
     def copy(self) -> 'LatestRead':
-        return LatestRead(self.index, self.chapter_name, self.percent, self.type, self.float_percent, self.line)
+        return LatestRead(self.index, self.chapter_name, self.percent,
+                          self.type, self.float_percent, self.line, self.is_title,
+                          self.page_step, self.min, self.max, self.value)
 
     def __deepcopy__(self, memo: dict) -> 'LatestRead':
         return self.copy()
 
     def as_dict(self) -> dict:
         return asdict(self)
+
 
 @dataclass
 class TaskInfo(object):
@@ -196,7 +208,6 @@ class InfoObj(object):
             if latest and isinstance(latest, dict):
                 latest_read = LatestRead(**latest)
                 self.novel_read_infos['latest_read'] = latest_read
-
 
     def __eq__(self, other) -> bool:
         if isinstance(other, self.__class__):
@@ -456,7 +467,7 @@ class InfoObj(object):
         if self.novel_chapter_urls:
             return self.novel_chapter_urls[-1][1]
         return ''
-    
+
     def first_chapter(self) -> str:
         if self._is_file:
             return ''

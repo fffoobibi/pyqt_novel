@@ -1,7 +1,4 @@
-from crawl_novel.spiders.infoobj import LatestRead
 import math
-import re
-import os
 import time
 import httpx
 import pprint
@@ -11,7 +8,7 @@ import traceback
 import jinja2
 import asyncio
 
-from enum import Enum, Flag, IntEnum
+from enum import IntEnum
 from textwrap import fill
 from random import sample
 from copy import deepcopy
@@ -35,12 +32,13 @@ from PyQt5.QtCore import (QFile, QObject, QSemaphore, QTextStream, QThread, Qt,
                           QEvent, QRectF, QRegExp, QRegularExpression,
                           QRegularExpressionMatchIterator, qRound,
                           QSortFilterProxyModel)
-from PyQt5.QtGui import (
-    QContextMenuEvent, QIntValidator, QPixmap, QIcon, QMouseEvent, QCursor,
-    QDragEnterEvent, QDragMoveEvent, QDropEvent, QDrag, QDesktopServices, QPen,
-    QColor, QPainter, QFontMetrics, QMovie, QPalette, QBitmap, QPainterPath,
-    QFont, QSyntaxHighlighter, QTextCharFormat, QTextDocument, QStandardItem,
-    QStandardItemModel, QIcon, QTextCursor, QTextOption, QWheelEvent)
+from PyQt5.QtGui import (QIntValidator, QPixmap, QIcon, QMouseEvent, QCursor,
+                         QDragEnterEvent, QDragMoveEvent, QDropEvent, QDrag,
+                         QDesktopServices, QPen, QColor, QPainter,
+                         QFontMetrics, QMovie, QPalette, QBitmap, QPainterPath,
+                         QFont, QSyntaxHighlighter, QTextCharFormat,
+                         QTextDocument, QStandardItem, QStandardItemModel,
+                         QIcon, QTextCursor, QWheelEvent)
 
 from PyQt5.QtSvg import QSvgRenderer
 
@@ -53,7 +51,7 @@ from .magic import lasyproperty
 from .common_srcs import CommonPixmaps
 from .titlebar import TitleBar
 
-from crawl_novel import (InfoObj, InfTools, get_spider_byname,
+from crawl_novel import (InfoObj, InfTools, get_spider_byname, LatestRead,
                          ChapterDownloader, DownStatus, Markup)
 
 
@@ -3239,10 +3237,20 @@ class AnimationStackWidget(QStackedWidget):  # 翻页动画
         painter.drawPixmap(r1, nextPixmap, r2)
 
 
-class BaseTaskReadWidget(QObject):
-    def __init__(self, *args, **kwargs) -> None:
-        self.task_widget: "TaskWidget" = kwargs.pop("task_widget", None)
-        self.flag = -1
+class FlagAction(IntEnum):
+    first_in = 0
+    next_chapter = 1
+    previous_chapter = 2
+    jump_chapter = 3
+    scroll_to_split = 4  # 滚动到水平
+    split_to_scroll = 5  # 水平到滚动
+    undefined = 6  # 未定义
+    from_bookmark = 7  # 从书签中跳转
+
+
+class BaseTaskReadPropertys(object):
+    def __init__(self) -> None:
+        self.flag: FlagAction = FlagAction.undefined
         self.messages: dict = None
         self.current_index: int = -1
         self.current_book: str = ''
@@ -3257,8 +3265,7 @@ class BaseTaskReadWidget(QObject):
 
     @lasyproperty
     def read_loader(self) -> ChapterDownloader:
-        new_loop = asyncio.new_event_loop()
-        loader = ChapterDownloader(QSemaphore(20), self.info, new_loop)
+        loader = ChapterDownloader(QSemaphore(20), self.info)
         loader.single_signal.connect(self.updateChapter)
         loader.single_fail_signal.connect(self.failUpdateChapter)
         return loader
@@ -3319,7 +3326,8 @@ class BaseTaskReadWidget(QObject):
                         font_size: int = 15,
                         letter_spacing: int = 2,
                         line_height: int = 5,
-                        flag: int = 0) -> None:
+                        flag: FlagAction = FlagAction.first_in,
+                        **kwargs) -> None:
         self.flag = flag
         self.indent_size = indent
         self.margin_size = margin
@@ -3345,7 +3353,7 @@ class BaseTaskReadWidget(QObject):
                 self.font_size,
                 self.letter_spacing,
                 self.line_height,
-                1,
+                flag=FlagAction.next_chapter,
             )
 
     def preview_chapter(self) -> None:
@@ -3362,7 +3370,7 @@ class BaseTaskReadWidget(QObject):
                 self.font_size,
                 self.letter_spacing,
                 self.line_height,
-                1,
+                flag=FlagAction.next_chapter,
             )
 
     def jump_chapter(self, index: int, percent: float = 0) -> None:
@@ -3378,7 +3386,7 @@ class BaseTaskReadWidget(QObject):
             self.font_size,
             self.letter_spacing,
             self.line_height,
-            2,
+            flag=FlagAction.jump_chapter,
         )
 
     def _customTextMenu(self) -> None:
@@ -3483,7 +3491,7 @@ class BaseTaskReadWidget(QObject):
             QApplication.clipboard().setText(self.textCursor().selectedText())
         self.is_textmenu = False
 
-    def _exit_read(self):
+    def _exit_read(self):  # 退出阅读
         self.task_widget.exit_button.click()
 
     @pyqtSlot(dict)  # 下载成功
@@ -3510,7 +3518,108 @@ class BaseTaskReadWidget(QObject):
         pass
 
 
-class AutoSplitContentTaskReadWidget(QWidget, BaseTaskReadWidget):  # 自动分页阅读组件
+class AutoSplitContentTaskReadWidget(QWidget,
+                                     BaseTaskReadPropertys):  # 自动分页阅读组件
+    def _customTextMenu(self) -> None:
+        menu_style = '''
+            QMenu {
+            background-color : %s;
+            padding:5px;
+            border:1px solid %s
+            }
+            QMenu::item {
+                font-size:9pt;
+                background-color: %s;
+                color: %s;
+                padding: 10px 3px 8px 3px;
+                margin: 3px 3px;
+            }
+            QMenu::item:selected {
+                background-color : red;
+            }
+            QMenu::icon:checked {
+                background: rgb(253,253,254);
+                position: absolute;
+                top: 1px;
+                right: 1px;
+                bottom: 1px;
+                left: 1px;
+            }
+            QMenu::separator {
+                height: 2px;
+                background: rgb(235,235,236);
+                margin-left: 10px;
+                margin-right: 10px;
+            }'''
+
+        bkg_color = self.bkg_color.name()
+        text_color = self.text_color.name()
+
+        font = QFont("微软雅黑", 9)
+        menu = QMenu(self)
+        menu.setStyleSheet(menu_style %
+                           (text_color, text_color, text_color, bkg_color))
+        menu.setFixedWidth(menu.fontMetrics().widthChar("操") * 10 + 5)
+        l_style = "QLabel{color:%s; background:%s;font-family:微软雅黑;font-size:9pt;font-weight:bold}QLabel:hover{background:%s;color:%s}" % (
+            bkg_color, text_color, bkg_color, text_color)
+        l_height = QFontMetrics(font).height() * 1.6
+
+        a0 = None
+        if self.textCursor().hasSelection():
+            l0 = QLabel('复制所选内容')
+            l0.setFixedHeight(l_height)
+            l0.setAlignment(Qt.AlignCenter)
+            l0.setStyleSheet(l_style)
+            a0 = QWidgetAction(menu)
+            a0.setDefaultWidget(l0)
+            menu.addAction(a0)
+
+        # l1 = QLabel("添加书签")
+        l2 = QLabel("查看书签")
+        l3 = QLabel("查看目录")
+        l4 = QLabel("退出阅读")
+        # l1.setFixedHeight(l_height)
+        l2.setFixedHeight(l_height)
+        l3.setFixedHeight(l_height)
+        l4.setFixedHeight(l_height)
+
+        # l1.setAlignment(Qt.AlignCenter)
+        l2.setAlignment(Qt.AlignCenter)
+        l3.setAlignment(Qt.AlignCenter)
+        l4.setAlignment(Qt.AlignCenter)
+        # l1.setStyleSheet(l_style)
+        l2.setStyleSheet(l_style)
+        l3.setStyleSheet(l_style)
+        l4.setStyleSheet(l_style)
+
+        # a1 = QWidgetAction(menu)
+        a2 = QWidgetAction(menu)
+        a3 = QWidgetAction(menu)
+        a4 = QWidgetAction(menu)
+
+        # a1.setDefaultWidget(l1)
+        a2.setDefaultWidget(l2)
+        a3.setDefaultWidget(l3)
+        a4.setDefaultWidget(l4)
+
+        # menu.addAction(a1)
+        menu.addAction(a2)
+        menu.addAction(a3)
+        menu.addAction(a4)
+
+        act = menu.exec_(QCursor.pos())
+        self.is_textmenu = True
+        if act == a4:
+            self._exit_read()
+        # elif act == a1:
+        #     self._add_mark()
+        elif act == a2:
+            self._show_marks()
+        elif act == a3:
+            self._show_chapters()
+        elif act == a0:
+            QApplication.clipboard().setText(self.textCursor().selectedText())
+        self.is_textmenu = False
 
     @property
     def read_font(self):
@@ -3524,7 +3633,7 @@ class AutoSplitContentTaskReadWidget(QWidget, BaseTaskReadWidget):  # 自动分�
         self._read_font.setLetterSpacing(QFont.AbsoluteSpacing,
                                          self.letter_spacing)
         self._title_font = QFont(self._read_font)
-        self._title_font.setPointSize(16)
+        self._title_font.setPointSize(max(16, self.font_size + 2))
 
     @property
     def current_chapter(self) -> str:
@@ -3536,14 +3645,14 @@ class AutoSplitContentTaskReadWidget(QWidget, BaseTaskReadWidget):  # 自动分�
         return QTextCursor()
 
     def __init__(self, *args, **kwargs):
-        super(AutoSplitContentTaskReadWidget, self).__init__(*args, **kwargs)
-        super(BaseTaskReadWidget, self).__init__()
+        self.task_widget: "TaskWidget" = kwargs.pop("task_widget", None)
+        super().__init__(*args, **kwargs)
         self._read_font = QFont(self.font_family, self.font_size)
         self._read_font.setLetterSpacing(QFont.AbsoluteSpacing,
                                          self.letter_spacing)
 
         self._title_font = QFont(self._read_font)
-        self._title_font.setPointSize(16)
+        self._title_font.setPointSize(max(16, self.font_size + 2))
 
         self.bkg_color = Qt.white
         self.text_color = Qt.black
@@ -3552,13 +3661,15 @@ class AutoSplitContentTaskReadWidget(QWidget, BaseTaskReadWidget):  # 自动分�
         self._p_lines: List[List[str, bool, bool]] = []
         self._page_count: int = 0
         self.chapter_content: List[str] = None
-        self.by_first_line: str= None
+        self.by_first_line: str = None
+        self.is_title: bool = None
         self.content_length: int = 0
         self.read_layout = QVBoxLayout(self)
         self.read_layout.setSpacing(self.line_height)
         self.read_layout.setContentsMargins(0, 0, 0, 0)
 
         self.setReadStyle()
+
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self._customTextMenu)
 
@@ -3586,65 +3697,127 @@ class AutoSplitContentTaskReadWidget(QWidget, BaseTaskReadWidget):  # 自动分�
         super().resizeEvent(event)
         self.read_width = self.width() - 10
         self.read_height = self.height()
+        first_line, is_title = self.first_line()
         self._clearReadLines()
         if self.chapter_content:
-            self.computePages(self.chapter_content, self.current_page, by_first_line=self.first_line())
+            self.computePages(self.chapter_content,
+                              self.current_page,
+                              by_first_line=first_line,
+                              is_title=is_title)
             msg = self.current_chapter + f'({self.current_page+1}/{self.pageCount()})'
             self.task_widget.load_chapter_init(msg)
             self.update_latest()
 
+    @pyqtSlot(dict)  # 下载成功
+    def updateChapter(self, messages: dict) -> None:
+        latest = self.info.getLatestRead()
+        content = messages['content']
+        content.insert(0, messages['chapter'])
+        chapter_name = messages["chapter"]
+        if self.flag == FlagAction.first_in:  # 初次进入
+            self.computePages(content,
+                              latest.percent,
+                              by_first_line=self.by_first_line)  # 按percent分页
+            msg = chapter_name + f'({self.current_page + 1}/{self.pageCount()})'
+
+        elif self.flag == FlagAction.next_chapter:  # next
+            self.computePages(content)
+            msg = chapter_name + f'(1/{self.pageCount()})'
+
+        elif self.flag == FlagAction.previous_chapter:  # previous
+            self.computePages(content, self.dst_page, dst_flag=True)
+            msg = chapter_name + f'({self.current_page+1}/{self.pageCount()})'
+
+        elif self.flag == FlagAction.jump_chapter:  # jump
+            self.computePages(content, self.current_page)
+            msg = chapter_name + f'({self.current_page+1}/{self.pageCount()})'
+
+        elif self.flag == FlagAction.scroll_to_split:  # 翻页转换
+            self.computePages(content,
+                              latest.percent,
+                              by_first_line=self.by_first_line,
+                              is_title=False)
+            msg = chapter_name + f'({self.current_page+1}/{self.pageCount()})'
+            # self.update_latest()
+
+        elif self.flag == FlagAction.from_bookmark:
+            self.computePages(content,
+                              latest.percent,
+                              by_first_line=self.by_first_line,
+                              is_title=False)
+            msg = chapter_name + f'({self.current_page+1}/{self.pageCount()})'
+            # self.update_latest()
+        self.update_latest()
+        self.task_widget.load_chapter_init(msg)
+        self.content_length = len(''.join(content))
+
     def paintEvent(self, event) -> None:
         super().paintEvent(event)
         use_custom = self.task_widget.more_widget.use_custom
-        if self.bkg_image and use_custom:
+        use_cust_image = self.task_widget.more_widget.use_cust_image
+        if self.bkg_image and use_custom and use_cust_image:
             painter = QPainter()
             painter.begin(self)
             painter.drawPixmap(self.rect(), QPixmap(self.bkg_image))
             painter.end()
-        elif self.bkg_image and use_custom ==False:
+        elif self.bkg_image and use_custom == False:
             painter = QPainter()
             painter.begin(self)
             painter.drawTiledPixmap(self.rect(), QPixmap(self.bkg_image))
             painter.end()
 
+    def __split_from_contents(self,
+                              lines: list,
+                              current_page: int,
+                              dst_flag: bool = False):
+        height = self._textHeight()
+        title_height = self._titleHeight()
+        self.chapter_content = lines
+        self._addLines(lines)
+        label_counts = int((self.read_height + height - title_height) /
+                           (self.line_height + height))  # title,分页
+        p1 = self._split_sequence(self._p_lines, label_counts)[0]
+
+        label_counts = int(
+            (self.read_height) / (self.line_height + height))  # content 分页
+
+        p2 = self._split_sequence(self._p_lines[len(p1):], label_counts)
+        p2.insert(0, p1)
+        self._p_lines = p2
+        self._page_count = len(p2)
+        # self.current_page = index if index >=0 else len(self._p_lines) + index
+        self.current_page = current_page if not dst_flag else len(
+            self._p_lines) + current_page
+        self.read_layout.addSpacing(self.line_height)
+        try:
+            for line, p_first_flag, p_title in self._p_lines[
+                    self.current_page]:
+                self._setReadLine(line, height, p_first_flag, p_title)
+        except IndexError:
+            self.current_page = self._page_count - 1
+            for line, p_first_flag, p_title in self._p_lines[
+                    self.current_page]:
+                self._setReadLine(line, height, p_first_flag, p_title)
+        self.read_layout.addStretch()
+
     def computePages(self,
                      lines: list,
                      index: int = 0,
                      dst_flag: bool = False,
-                     by_first_line: str = None):  # 计算章节所需页数
+                     by_first_line: str = None,
+                     is_title: bool = True):  # 计算章节所需页数
         height = self._textHeight()
         title_height = self._titleHeight()
-        self.by_first_line = by_first_line
-        # if float_percent is None:
-        if not by_first_line:
-            self.chapter_content = lines
-            self._addLines(lines)
+        if is_title is not None:
+            self.is_title = is_title
+        if self.is_title:
+            self.__split_from_contents(lines, index, dst_flag)
+        elif by_first_line is not None and by_first_line.strip(
+        ) == self.current_chapter:
+            self.__split_from_contents(lines, 0, dst_flag)
 
-            label_counts = int((self.read_height + height - title_height) /
-                                (self.line_height + height))  # title,分页
-            p1 = self._split_sequence(self._p_lines, label_counts)[0]
-
-            label_counts = int(
-                (self.read_height) / (self.line_height + height))  # content 分页
-
-            p2 = self._split_sequence(self._p_lines[len(p1):], label_counts)
-            p2.insert(0, p1)
-            self._p_lines = p2
-            self._page_count = len(p2)
-            # self.current_page = index if index >=0 else len(self._p_lines) + index
-            self.current_page = index if not dst_flag else len(
-                self._p_lines) + index
-            self.read_layout.addSpacing(self.line_height)
-            try:
-                for line, p_first_flag, p_title in self._p_lines[self.current_page]:
-                    self._setReadLine(line, height, p_first_flag, p_title)
-            except IndexError:
-                self.current_page = self._page_count - 1
-                for line, p_first_flag, p_title in self._p_lines[self.current_page]:
-                    self._setReadLine(line, height, p_first_flag, p_title)
-            self.read_layout.addStretch()
-
-        elif by_first_line is not None and by_first_line:
+        elif by_first_line is not None and by_first_line and is_title == False:
+            self.by_first_line = by_first_line
             self.chapter_content = lines
             i = -1
             for line in self.chapter_content:
@@ -3654,14 +3827,15 @@ class AutoSplitContentTaskReadWidget(QWidget, BaseTaskReadWidget):  # 自动分�
                     break
             else:
                 pint = 1
-
+            pint = max(1, pint)
             self._addLines(self.chapter_content[:pint])  # 添加处理行
             label_counts = int((self.read_height + height - title_height) /
                                (self.line_height + height))  # title,分页
             p1 = self._split_sequence(self._p_lines, label_counts)[0]
             lp1 = len(p1)
-            label_counts = int((self.read_height) / (self.line_height + height))  # content 分页
-            p2 = self._split_sequence(self._p_lines[len(p1):], label_counts) 
+            label_counts = int(
+                (self.read_height) / (self.line_height + height))  # content 分页
+            p2 = self._split_sequence(self._p_lines[len(p1):], label_counts)
             p2.insert(0, p1)
             lp2 = len(p2)
             self._p_lines = p2
@@ -3671,29 +3845,48 @@ class AutoSplitContentTaskReadWidget(QWidget, BaseTaskReadWidget):  # 自动分�
             copyed_p_lines.extend(p)
             self._p_lines = copyed_p_lines
             self._page_count = len(self._p_lines)
-            self.current_page = lp2 
+            self.current_page = lp2
             self.read_layout.addSpacing(self.line_height)
-            for line, p_first_flag, p_title in self._p_lines[self.current_page]:
+            for line, p_first_flag, p_title in self._p_lines[
+                    self.current_page]:
                 self._setReadLine(line, height, p_first_flag, p_title)
             self.read_layout.addStretch()
 
-    def first_line(self) -> str:
-        item = self.read_layout.itemAt(1)
-        if item:
-            return item.widget().label.text()
-        return ''
+    def first_line(self) -> Tuple[str, bool]:
+        for i in range(self.read_layout.count()):
+            item = self.read_layout.itemAt(i)
+            if item:
+                widget = item.widget()
+                if widget:
+                    label = widget.label
+                    # if label.p_first_flag:
+                    return label.text(), label.p_title
+        return '', False
 
-    def update_latest(self) -> None:  # 更新最近阅读信息
+        # item = self.read_layout.itemAt(1)
+        # if item:
+        #     return item.widget().label.text()
+        # return ''
+
+    def update_latest(self, first_line: str = None) -> None:  # 更新最近阅读信息
         read_info = self.info.getLatestRead()
         read_info.index = self.current_index
         read_info.chapter_name = self.current_chapter
         read_info.percent = self.current_page
-        read_info.line = self.first_line()
+        if first_line is not None:
+            read_info.line = first_line
+        else:
+            read_info.line, _ = self.first_line()
+        if read_info.line.strip() == read_info.chapter_name:
+            read_info.is_title = True
+        else:
+            read_info.is_title = False
         if self.content_length:
             pages = self._p_lines[:self.current_page]
             page_lines = [lines[0] for page in pages for lines in page]
             read_info.float_percent = len(
                 ''.join(page_lines)) / self.content_length
+            # read_info.min, read_info.max, read_info.value = text_browser.barRangeandValue()
 
     def setReadStyle(self, bkg_color=None, text_color=None, bkg_image=None):
         self.bkg_color = QColor(
@@ -3701,8 +3894,8 @@ class AutoSplitContentTaskReadWidget(QWidget, BaseTaskReadWidget):  # 自动分�
         self.text_color = QColor(
             self.text_color) if text_color is None else QColor(text_color)
         self.bkg_image = bkg_image
-        sytles = 'QLabel{color: %s} QFrame{background:transparent}' % self.text_color.name(
-        )
+        sytles = 'QLabel{color: %s} QFrame{background:transparent} AutoSplitContentTaskReadWidget{background: %s}' % (
+            self.text_color.name(), self.bkg_color.name())
         self.setStyleSheet(sytles)
 
     def setTextColor(self, color):
@@ -3722,9 +3915,9 @@ class AutoSplitContentTaskReadWidget(QWidget, BaseTaskReadWidget):  # 自动分�
 
     def next_page(self):
         height = self._textHeight()
-        next = (self.current_page + 1) % self.pageCount()
-        if next > 0:
-            self.current_page = next
+        next_index = (self.current_page + 1) % self.pageCount()
+        if next_index > 0:
+            self.current_page = next_index
             self._clearReadLines()
             self.read_layout.addSpacing(self.line_height)
             for line, p_first_flag, p_title in self._p_lines[
@@ -3757,10 +3950,11 @@ class AutoSplitContentTaskReadWidget(QWidget, BaseTaskReadWidget):  # 自动分�
         return QFontMetrics(self._title_font).height()
 
     def _setReadLine(self, line: str, height: int, p_first_flag: bool,
-                     p_title: bool):  # 天降阅读行
+                     p_title: bool):  # 添加阅读内容, 并布局排版
         frame = QFrame()
         frame.setFrameShape(QFrame.NoFrame)
         frame.setFixedHeight(height)
+
         frame_h = QHBoxLayout(frame)
         frame_h.setContentsMargins(0, 0, 0, 0)
         frame_h.setSpacing(0)
@@ -3772,9 +3966,18 @@ class AutoSplitContentTaskReadWidget(QWidget, BaseTaskReadWidget):  # 自动分�
         else:
             label.setFont(self._read_font)
         label.setText(line)
+
         if p_first_flag:
             label.setIndent(self.indent_size)
-        frame_h.addSpacing(self.margin_size)
+        if p_title:
+            label.setIndent(0)
+
+        label.p_title = p_title
+        label.p_first_flag = p_first_flag
+        if p_title:
+            frame_h.addSpacing(10)
+        else:
+            frame_h.addSpacing(self.margin_size)
         frame_h.addWidget(label)
         frame_h.addStretch()
         frame.label = label
@@ -3796,7 +3999,7 @@ class AutoSplitContentTaskReadWidget(QWidget, BaseTaskReadWidget):  # 自动分�
             p_first_line = True if i == 0 else False
             self._p_lines.append([line, p_first_line, False])
 
-    def _addLines(self, lines: list, first_title: bool=True):  # 分行处理
+    def _addLines(self, lines: list, first_title: bool = True):  # 分行处理
         self._p_lines.clear()
         fm = QFontMetrics(self._read_font)
         i = 0
@@ -3805,8 +4008,9 @@ class AutoSplitContentTaskReadWidget(QWidget, BaseTaskReadWidget):  # 自动分�
             self._addLine(line, fm)
         if self._p_lines:
             self._p_lines[0][-1] = first_title
-    
-    def _text_compute(self, text: str, fm: QFontMetrics, width: int) -> list:
+
+    def _text_compute(self, text: str, fm: QFontMetrics,
+                      width: int) -> list:  # 计算所需大小
         if fm.width(text) <= width - self.indent_size - self.margin_size * 2:
             return [text]
         else:
@@ -3826,28 +4030,6 @@ class AutoSplitContentTaskReadWidget(QWidget, BaseTaskReadWidget):  # 自动分�
                     # res.append(last)
             lines.append(''.join(res).strip())
             return lines
-
-    @pyqtSlot(dict)  # 下载成功
-    def updateChapter(self, messages: dict) -> None:
-        latest = self.info.getLatestRead()
-        content = messages['content']
-        content.insert(0, messages['chapter'])
-        chapter_name = messages["chapter"]
-        if self.flag == 0:  # 初次进入
-            self.computePages(content, latest.percent, by_first_line=self.by_first_line)
-            msg = chapter_name + f'({self.current_page + 1}/{self.pageCount()})'
-        elif self.flag == 1:  # next
-            self.computePages(content)
-            msg = chapter_name + f'(1/{self.pageCount()})'
-        elif self.flag == 2:  # previous
-            self.computePages(content, self.dst_page, dst_flag=True)
-            msg = chapter_name + f'({self.current_page+1}/{self.pageCount()})'
-        elif self.flag == 3:  # jump
-            self.computePages(content, self.current_page)
-            msg = chapter_name + f'({self.current_page+1}/{self.pageCount()})'
-        self.task_widget.load_chapter_init(msg)
-        self.content_length = len(''.join(content))
-        # self.update_latest()
 
     @pyqtSlot(dict)  # 下载失败
     def failUpdateChapter(self, messages: dict) -> None:
@@ -3876,7 +4058,7 @@ class AutoSplitContentTaskReadWidget(QWidget, BaseTaskReadWidget):  # 自动分�
         line_height = (line_height / 100) * 5
         self._read_font = QFont(family, font_size)
         self._read_font.setLetterSpacing(QFont.AbsoluteSpacing, letter_spacing)
-        self._title_font = QFont(family, 16)
+        self._title_font = QFont(family, font_size + 2)
         super().request_chapter(url_index, chapter_name, current_book, family,
                                 indent, margin, font_size, letter_spacing,
                                 line_height, flag)
@@ -3903,7 +4085,7 @@ class AutoSplitContentTaskReadWidget(QWidget, BaseTaskReadWidget):  # 自动分�
                     self.font_size,
                     self.letter_spacing,
                     line_height,
-                    1,
+                    flag=1,
                 )
 
     def preview_chapter(self) -> None:
@@ -3918,28 +4100,52 @@ class AutoSplitContentTaskReadWidget(QWidget, BaseTaskReadWidget):  # 自动分�
                 chapter_name = self.info.novel_chapter_urls[index][1]
                 line_height = 20 * self.line_height
                 self._clearReadLines()
-                self.request_chapter(index, chapter_name, self.current_book,
-                                     self.font_family, self.indent_size,
-                                     self.margin_size, self.font_size,
-                                     self.letter_spacing, line_height, 2, -1)
+                self.request_chapter(index,
+                                     chapter_name,
+                                     self.current_book,
+                                     self.font_family,
+                                     self.indent_size,
+                                     self.margin_size,
+                                     self.font_size,
+                                     self.letter_spacing,
+                                     line_height,
+                                     flag=2,
+                                     page=-1)
 
     def jump_chapter(self, index: int, percent: float = 0) -> None:
         chapter_name = self.info.novel_chapter_urls[index][1]
         self.current_page = 0
         self.jump_percent = percent
         self._clearReadLines()
-        self.request_chapter(
-            index,
-            chapter_name,
-            self.current_book,
-            self.font_family,
-            self.indent_size,
-            self.margin_size,
-            self.font_size,
-            self.letter_spacing,
-            self.line_height,
-            3,
-        )
+        self.request_chapter(index,
+                             chapter_name,
+                             self.current_book,
+                             self.font_family,
+                             self.indent_size,
+                             self.margin_size,
+                             self.font_size,
+                             self.letter_spacing,
+                             self.line_height,
+                             flag=FlagAction.jump_chapter)
+
+    def jump_from_bookmark(self, index: int, line: str, is_title: bool):
+        chapter_name = self.info.novel_chapter_urls[index][1]
+        self.current_page = 0
+        self._clearReadLines()
+        self.by_first_line = line
+        self.is_title = is_title
+        if is_title:
+            self.by_first_line = self.current_chapter
+        self.request_chapter(index,
+                             chapter_name,
+                             self.current_book,
+                             self.font_family,
+                             self.indent_size,
+                             self.margin_size,
+                             self.font_size,
+                             self.letter_spacing,
+                             self.line_height,
+                             flag=FlagAction.from_bookmark)
 
     def renderOk(self, *args, **kwargs) -> str:
         by_line = kwargs.pop('by_first_line', None)
@@ -3949,16 +4155,19 @@ class AutoSplitContentTaskReadWidget(QWidget, BaseTaskReadWidget):  # 自动分�
         self.read_font = QFont(self.font_family, self.font_size)
         self.read_font.setLetterSpacing(QFont.AbsoluteSpacing,
                                         self.letter_spacing)
-        
+
         self.line_height = (self.line_height / 100) * 5
         self._clearReadLines()
-        self.computePages(self.chapter_content, self.current_page, by_first_line=by_line)
+        self.computePages(self.chapter_content,
+                          self.current_page,
+                          by_first_line=by_line,
+                          is_title=False)
         chapter_name = self.chapter_content[0].strip()
         self.task_widget.load_chapter_init(
-            chapter_name + f'({self.current_page}/{self.pageCount()})')
+            chapter_name + f'({self.current_page + 1}/{self.pageCount()})')
 
     def renderFail(self, *args, **kwargs) -> str:
-        print('render fail')
+        pass
 
     def readTextColor(self) -> str:
         return QColor(self.text_color).name()
@@ -3970,25 +4179,27 @@ class AutoSplitContentTaskReadWidget(QWidget, BaseTaskReadWidget):  # 自动分�
         pass
 
 
-class TaskReadBrowser(QTextBrowser, BaseTaskReadWidget):
-    class Actives(Enum):
-        next_act = 0
-        previous_act = 1
-        jump_act = 2
-        request_act = 3
-
+class TaskReadBrowser(QTextBrowser, BaseTaskReadPropertys):
     def visableText(self) -> str:
-        cursor = self.cursorForPosition(QPoint(0, 0));
-        bottom_right = QPoint(self.viewport().width() - 1, self.viewport().height() - 1)
+        cursor = self.cursorForPosition(QPoint(0, 0))
+        bottom_right = QPoint(self.viewport().width() - 1,
+                              self.viewport().height() - 1)
         end_pos = self.cursorForPosition(bottom_right).position()
         cursor.setPosition(end_pos, QTextCursor.KeepAnchor)
         return cursor.selectedText()
 
+    def barRangeandValue(self) -> Tuple:
+        bar = self.verticalScrollBar()
+        return bar.minimum(), bar.maximum(), bar.value()
+
     def visableParas(self) -> List[str]:
         return self.visableText().split('\u2029')
 
+    def firstVisablePara(self) -> str:
+        return self.visableParas()[0].strip()
+
     def to_int_percent(self) -> int:
-        read_info = self.info.getLatestRead()
+        pass
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -4039,7 +4250,7 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadWidget):
         latest.index = self.current_index
         latest.chapter_name = messages.get("chapter", "")
         percent = latest.float_percent
-        print('show: ', percent)
+        page_step = latest.page_step
         html = self.renderOk(
             messages=messages,
             indent_size=self.indent_size,
@@ -4049,25 +4260,35 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadWidget):
             font_size=self.font_size,
             letter_spacing=self.letter_spacing,
         )
+        blocked = self.verticalScrollBar().blockSignals(True)
         self.setHtml(html)
-        print('show: ', percent)
         chapter_name = messages["chapter"]
-        if self.flag == 0:  # 初次进入
-            print('first')
-            self.verticalScrollBar().setValue(self.total_length() * percent)
+        if self.flag == FlagAction.first_in:  # 初次进入
+            self.verticalScrollBar().setPageStep(page_step)
+            self.verticalScrollBar().setRange(latest.min, latest.max)
+            self.verticalScrollBar().setValue(latest.value)
             if percent > 0:
                 self.task_widget.load_chapter_init(chapter_name + "(%.2f%%)" %
                                                    (percent * 100))
             else:
                 self.task_widget.load_chapter_init(chapter_name)
-        elif self.flag == 1:  # next, preview
+        elif self.flag == FlagAction.next_chapter:  # next, preview
             self.task_widget.load_chapter_init(chapter_name)
+            latest.float_percent = 0
+            latest.line = chapter_name.strip()
+            latest.is_title = True
             self.verticalScrollBar().setValue(0)
-        elif self.flag == 2:  # 带percent跳转
+        elif self.flag == FlagAction.jump_chapter:  # 带percent跳转
             self.verticalScrollBar().setValue(self.jump_percent *
                                               self.total_length())
             self.task_widget.load_chapter_init(chapter_name + "(%.2f%%)" %
                                                (self.jump_percent * 100))
+
+        elif self.flag == FlagAction.split_to_scroll:
+            self.verticalScrollBar().setValue(self.total_length() *
+                                              latest.float_percent)
+            self.task_widget.load_chapter_init(chapter_name + "(%.2f%%)" %
+                                               (latest.float_percent * 100))
 
         markup = self.task_widget.info.bookmark_exists(self.current_index,
                                                        self.current_chapter)
@@ -4078,6 +4299,7 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadWidget):
             self.current_mark = None
             self.task_widget.mark_button.hide()
         self.task_widget.updateRequestState()
+        self.verticalScrollBar().blockSignals(False)
 
     def total_length(self) -> int:
         length = (self.verticalScrollBar().maximum() -
@@ -4102,10 +4324,9 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadWidget):
     def current_markup(self, mark: Optional[Markup]):
         self.current_mark = mark
 
-
     def __init__(self, *args, **kwargs) -> None:
-        super(QTextBrowser, self).__init__(*args, **kwargs)
-        super(BaseTaskReadWidget, self).__init__(*args, **kwargs)
+        self.task_widget: "TaskWidget" = kwargs.pop("task_widget", None)
+        super().__init__(*args, **kwargs)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self._customTextMenu)
 
@@ -4134,8 +4355,9 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadWidget):
                         font_size: int = 15,
                         letter_spacing: int = 2,
                         line_height: int = 5,
-                        flag: int = 0, 
+                        flag: FlagAction = FlagAction.first_in,
                         **kwargs) -> None:
+
         for key in kwargs:
             setattr(self, key, kwargs[key])
         self.flag = flag
@@ -4163,7 +4385,7 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadWidget):
                 self.font_size,
                 self.letter_spacing,
                 self.line_height,
-                1,
+                FlagAction.next_chapter,
             )
 
     def preview_chapter(self) -> None:
@@ -4180,7 +4402,7 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadWidget):
                 self.font_size,
                 self.letter_spacing,
                 self.line_height,
-                1,
+                FlagAction.next_chapter,
             )
 
     def jump_chapter(self, index: int, percent: float = 0) -> None:
@@ -4196,7 +4418,7 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadWidget):
             self.font_size,
             self.letter_spacing,
             self.line_height,
-            2,
+            FlagAction.jump_chapter,
         )
 
 

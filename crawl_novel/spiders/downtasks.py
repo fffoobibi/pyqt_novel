@@ -186,12 +186,12 @@ class ChapterDownloader(BasicDownloader):
 
     nourls_signal = pyqtSignal(InfoObj)
 
-    single_signal = pyqtSignal(dict)
+    single_signal = pyqtSignal(dict) # 在线请求成功信号
 
-    single_fail_signal = pyqtSignal(dict)
+    single_fail_signal = pyqtSignal(dict) # 在线请求失败信号
 
-    def __init__(self, thread_seam: QSemaphore, inf: InfoObj, loop: asyncio.AbstractEventLoop):
-        self.asyc_loop = loop  # 事件循环
+    def __init__(self, thread_seam: QSemaphore, inf: InfoObj, loop: asyncio.AbstractEventLoop=None):
+        self.asyc_loop = asyncio.new_event_loop() if loop is None else loop # 事件循环
         self.asyn_sem = asyncio.Semaphore(30, loop=self.asyc_loop)  # 控制协程并发量
         self.results = []  # [(content, chapter_name, url_index), ...]
         super().__init__(thread_seam, inf)
@@ -202,7 +202,7 @@ class ChapterDownloader(BasicDownloader):
     def _create_downthread(self) -> QThread:
         return _AsyncThread(self, self.asyc_loop)
 
-    def _start_download(self, inf: InfoObj) -> None:
+    def _start_download(self, inf: InfoObj) -> None: # 根据inf下载所有章节
         asyncio.run_coroutine_threadsafe(self._download(inf), self.asyc_loop)
 
     def quit_download(self) -> None:
@@ -343,9 +343,8 @@ class ChapterDownloader(BasicDownloader):
                             info: InfoObj,
                             handler: Type[Handler],
                             exists_chapter: List[int] = None,
-                            read_dir: QDir = None) -> asyncio.Task:
+                            read_dir: QDir = None) -> asyncio.Task: # 下载,解析
         task_info = info.getTaskInfo(url_index)
-        # handler = get_handle_cls(info.novel_site)
         if read_dir is not None:  # 优先从缓存中获取
             if url_index in exists_chapter:
                 message = self._get_message_from_caches(

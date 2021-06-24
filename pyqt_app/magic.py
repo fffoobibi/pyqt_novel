@@ -17,7 +17,7 @@ __all__ = ['debugLocal', 'lasyproperty', 'enter_hook', 'calltag',
 def calltag(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        print('call %s', func.__name__)
+        print('call: %s' % func.__name__)
         res = func(*args, **kwargs)
         return res
     return wrapper

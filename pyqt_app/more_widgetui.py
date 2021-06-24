@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_Form(object):
     def setupUi(self, Form):
         Form.setObjectName("Form")
-        Form.resize(747, 652)
+        Form.resize(762, 613)
         Form.setStyleSheet("QWidget{background-color:#000000}")
         self.verticalLayout = QtWidgets.QVBoxLayout(Form)
         self.verticalLayout.setContentsMargins(0, 0, 0, 0)
@@ -75,7 +75,7 @@ class Ui_Form(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 725, 605))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 740, 566))
         self.scrollAreaWidgetContents.setStyleSheet("QSlider::groove:horizontal {\n"
 "border: 1px solid #4A708B;\n"
 "background: #C0C0C0;\n"
@@ -404,10 +404,21 @@ class Ui_Form(object):
         self.page_2.setObjectName("page_2")
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.page_2)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.label_7 = QtWidgets.QLabel(self.page_2)
+        self.scrollArea_2 = QtWidgets.QScrollArea(self.page_2)
+        self.scrollArea_2.setStyleSheet("background:transparent;\n"
+"border:none")
+        self.scrollArea_2.setWidgetResizable(True)
+        self.scrollArea_2.setObjectName("scrollArea_2")
+        self.scrollAreaWidgetContents_2 = QtWidgets.QWidget()
+        self.scrollAreaWidgetContents_2.setGeometry(QtCore.QRect(0, 0, 740, 566))
+        self.scrollAreaWidgetContents_2.setObjectName("scrollAreaWidgetContents_2")
+        self.verticalLayout_6 = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents_2)
+        self.verticalLayout_6.setContentsMargins(0, 0, 0, 0)
+        self.verticalLayout_6.setObjectName("verticalLayout_6")
+        self.label_7 = QtWidgets.QLabel(self.scrollAreaWidgetContents_2)
         self.label_7.setObjectName("label_7")
-        self.verticalLayout_3.addWidget(self.label_7)
-        self.frame_3 = QtWidgets.QFrame(self.page_2)
+        self.verticalLayout_6.addWidget(self.label_7)
+        self.frame_3 = QtWidgets.QFrame(self.scrollAreaWidgetContents_2)
         self.frame_3.setStyleSheet("QPushButton:checked{\n"
 "image: url(:/ico/checked_1206678_easyicon.net.svg);\n"
 "padding:8px;\n"
@@ -544,8 +555,8 @@ class Ui_Form(object):
         self.horizontalLayout_3.addLayout(self.gridLayout)
         spacerItem2 = QtWidgets.QSpacerItem(50, 20, QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_3.addItem(spacerItem2)
-        self.verticalLayout_3.addWidget(self.frame_3)
-        self.frame_5 = QtWidgets.QFrame(self.page_2)
+        self.verticalLayout_6.addWidget(self.frame_3)
+        self.frame_5 = QtWidgets.QFrame(self.scrollAreaWidgetContents_2)
         self.frame_5.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.frame_5.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame_5.setObjectName("frame_5")
@@ -562,8 +573,8 @@ class Ui_Form(object):
         self.horizontalLayout_5.addWidget(self.checkBox_2)
         spacerItem3 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_5.addItem(spacerItem3)
-        self.verticalLayout_3.addWidget(self.frame_5)
-        self.frame_4 = QtWidgets.QFrame(self.page_2)
+        self.verticalLayout_6.addWidget(self.frame_5)
+        self.frame_4 = QtWidgets.QFrame(self.scrollAreaWidgetContents_2)
         self.frame_4.setCursor(QtGui.QCursor(QtCore.Qt.ArrowCursor))
         self.frame_4.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.frame_4.setFrameShadow(QtWidgets.QFrame.Raised)
@@ -594,8 +605,8 @@ class Ui_Form(object):
         self.horizontalLayout_4.addWidget(self.pushButton_5)
         spacerItem5 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_4.addItem(spacerItem5)
-        self.verticalLayout_3.addWidget(self.frame_4)
-        self.frame_11 = QtWidgets.QFrame(self.page_2)
+        self.verticalLayout_6.addWidget(self.frame_4)
+        self.frame_11 = QtWidgets.QFrame(self.scrollAreaWidgetContents_2)
         self.frame_11.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.frame_11.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame_11.setObjectName("frame_11")
@@ -625,9 +636,43 @@ class Ui_Form(object):
         self.horizontalLayout_11.addWidget(self.his_button)
         spacerItem7 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
         self.horizontalLayout_11.addItem(spacerItem7)
-        self.verticalLayout_3.addWidget(self.frame_11)
-        spacerItem8 = QtWidgets.QSpacerItem(17, 191, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout_3.addItem(spacerItem8)
+        self.verticalLayout_6.addWidget(self.frame_11)
+        self.frame_14 = QtWidgets.QFrame(self.scrollAreaWidgetContents_2)
+        self.frame_14.setFrameShape(QtWidgets.QFrame.StyledPanel)
+        self.frame_14.setFrameShadow(QtWidgets.QFrame.Raised)
+        self.frame_14.setObjectName("frame_14")
+        self.horizontalLayout_14 = QtWidgets.QHBoxLayout(self.frame_14)
+        self.horizontalLayout_14.setObjectName("horizontalLayout_14")
+        self.label_15 = QtWidgets.QLabel(self.frame_14)
+        self.label_15.setObjectName("label_15")
+        self.horizontalLayout_14.addWidget(self.label_15)
+        self.use_image_checkbox = QtWidgets.QCheckBox(self.frame_14)
+        self.use_image_checkbox.setStyleSheet("\n"
+"QCheckBox::indicator{\n"
+"    width: 50px;\n"
+"    height: 28px;\n"
+"}\n"
+"\n"
+"QCheckBox::indicator:unchecked{\n"
+"    image:url(:/ico/开关-关.svg);\n"
+"}\n"
+"\n"
+"QCheckBox::indicator:checked{\n"
+"    image:url(:/ico/开关-开.svg);\n"
+"}\n"
+"")
+        self.use_image_checkbox.setIconSize(QtCore.QSize(30, 30))
+        self.use_image_checkbox.setCheckable(True)
+        self.use_image_checkbox.setChecked(True)
+        self.use_image_checkbox.setObjectName("use_image_checkbox")
+        self.horizontalLayout_14.addWidget(self.use_image_checkbox)
+        spacerItem8 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_14.addItem(spacerItem8)
+        self.verticalLayout_6.addWidget(self.frame_14)
+        spacerItem9 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout_6.addItem(spacerItem9)
+        self.scrollArea_2.setWidget(self.scrollAreaWidgetContents_2)
+        self.verticalLayout_3.addWidget(self.scrollArea_2)
         self.stackedWidget.addWidget(self.page_2)
         self.page_3 = QtWidgets.QWidget()
         self.page_3.setStyleSheet("font-family: 宋体;\n"
@@ -646,8 +691,8 @@ class Ui_Form(object):
         self.label_14 = QtWidgets.QLabel(self.frame_12)
         self.label_14.setObjectName("label_14")
         self.horizontalLayout_12.addWidget(self.label_14)
-        spacerItem9 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_12.addItem(spacerItem9)
+        spacerItem10 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_12.addItem(spacerItem10)
         self.verticalLayout_5.addWidget(self.frame_12)
         self.frame_13 = QtWidgets.QFrame(self.page_3)
         self.frame_13.setFrameShape(QtWidgets.QFrame.StyledPanel)
@@ -662,17 +707,20 @@ class Ui_Form(object):
 "QComboBox:focus{border: 1px solid #CC295F;border-radius:3px}\n"
 "\n"
 "QComboBox QAbstractItemView\n"
-"{border: 1px solid rgb(161,161,161);outline:0px\n"
+"{border: 1px solid rgb(161,161,161);\n"
+"outline:0px\n"
 "}\n"
 "QComboBox QAbstractItemView::item\n"
-"{ height: 24px;background-color: black; color:#aaaaaa;\n"
+"{ height: 24px;\n"
+"outline:0px\n"
 "}\n"
 "QComboBox QAbstractItemView::item:hover\n"
-"{ height: 24px;background-color: black; color:#aaaaaa\n"
+"{ height: 24px;background: black;color:#CC295F\n"
 "}\n"
 "QComboBox QAbstractItemView::item:selected\n"
 "{    \n"
-"    background-color: #2b2b2b; color: #aaaaaa; outline:0px\n"
+"    background-color:#2B2B2B;\n"
+"    color: white;\n"
 "}\n"
 "\n"
 "")
@@ -680,16 +728,16 @@ class Ui_Form(object):
         self.read_combo.addItem("")
         self.read_combo.addItem("")
         self.horizontalLayout_13.addWidget(self.read_combo)
-        spacerItem10 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_13.addItem(spacerItem10)
+        spacerItem11 = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
+        self.horizontalLayout_13.addItem(spacerItem11)
         self.verticalLayout_5.addWidget(self.frame_13)
-        spacerItem11 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
-        self.verticalLayout_5.addItem(spacerItem11)
+        spacerItem12 = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        self.verticalLayout_5.addItem(spacerItem12)
         self.stackedWidget.addWidget(self.page_3)
         self.verticalLayout.addWidget(self.stackedWidget)
 
         self.retranslateUi(Form)
-        self.stackedWidget.setCurrentIndex(2)
+        self.stackedWidget.setCurrentIndex(1)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
     def retranslateUi(self, Form):
@@ -712,6 +760,8 @@ class Ui_Form(object):
         self.label_10.setText(_translate("Form", "背景色:"))
         self.label_11.setText(_translate("Form", "字体色:"))
         self.label_13.setText(_translate("Form", "背景图片:"))
+        self.label_15.setText(_translate("Form", "使用背景图片:"))
+        self.use_image_checkbox.setText(_translate("Form", "开"))
         self.label_14.setText(_translate("Form", "翻页方式"))
         self.read_combo.setItemText(0, _translate("Form", "滚动"))
         self.read_combo.setItemText(1, _translate("Form", "水平"))

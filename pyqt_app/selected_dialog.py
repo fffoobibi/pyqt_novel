@@ -185,9 +185,9 @@ class SelectDialog(Ui_Dialog, QDialog):
             self.checkBox.blockSignals(False)
 
     def add_item(self, name, state, width, task_widget):
-        def _():
-            self.close()
-            task_widget.read_fromlatest(count, True)
+        # def _():
+        #     self.close()
+        #     task_widget.read_fromlatest(count, True)
 
         count = self.listWidget.count()
         item = QListWidgetItem()

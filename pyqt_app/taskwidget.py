@@ -3,14 +3,15 @@ import platform
 import os
 
 from enum import Enum
+from copy import deepcopy
 from types import MethodType
 from typing import Any, Callable, List, Union
 
-from PyQt5.QtWidgets import (QButtonGroup, QCheckBox, QDialog, QFrame,
-                             QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
-                             QPushButton, QStyle, QTextBrowser, QVBoxLayout, QWidget,
-                             QApplication, QMenu, QStyledItemDelegate,
-                             QStyleOptionViewItem, QFileDialog)
+from PyQt5.QtWidgets import (QButtonGroup, QDialog, QFrame, QHBoxLayout,
+                             QLabel, QListWidget, QListWidgetItem, QPushButton,
+                             QStyle, QVBoxLayout, QWidget, QApplication, QMenu,
+                             QStyledItemDelegate, QStyleOptionViewItem,
+                             QFileDialog)
 from PyQt5.QtCore import (QDir, QFileInfo, QSettings, pyqtSignal, pyqtSlot,
                           QSize, Qt, QModelIndex, QStandardPaths)
 from PyQt5.QtGui import (QImage, QPixmap, QColor, QPainter, QPen, QCursor,
@@ -22,7 +23,7 @@ from .taskwidgetui import Ui_Form
 from .common_srcs import CommonPixmaps
 from .customwidgets import AutoSplitContentTaskReadWidget, BaseTaskReadPropertys, FlagAction, IconWidget, SubscribeWidget, get_subscribeLinkobj, TaskReadBrowser, FInValidator
 from .styles import listwidget_v_scrollbar, menu_style, COLOR, read_v_style
-from .magic import calltag, qmixin, lasyproperty
+from .magic import qmixin, lasyproperty
 from .more_widgetui import Ui_Form as MoreUi
 from .chapter_widgetui import Ui_Form as ChapterUi
 
@@ -136,7 +137,9 @@ class settings_property(object):
                                          self.dft,
                                          type=self.type)
         if self.return_hook is not None:
-            return self.return_hook(result)
+            process = self.return_hook(result)
+            self.__set__(instance, process)
+            return process
         return result
 
     def __call__(self, func) -> 'settings_property':
@@ -145,14 +148,30 @@ class settings_property(object):
 
 
 class MoreDelegate(QStyledItemDelegate):
+    def __init__(self, more_widget: 'MoreWidget') -> None:
+        super().__init__()
+        self.more_widget = more_widget
+
     def paint(self, painter: QPainter, option: QStyleOptionViewItem,
               index: QModelIndex) -> None:
         rect = option.rect  # 目标矩形
-        pixmap = QPixmap(index.data(Qt.UserRole))
+        current_file = index.data(Qt.UserRole)
+        pixmap = QPixmap(current_file)
         super().paint(painter, option, index)
         painter.drawPixmap(rect, pixmap)
         if option.state & QStyle.State_HasFocus:  # checked
             painter.fillRect(rect, QColor(0, 0, 0, 150))
+
+        cust_images = self.more_widget.cust_images
+        flags = [pic for pic, text_color in cust_images]
+        current_color = cust_images[flags.index(current_file)][-1]
+        painter.save()
+        painter.setRenderHint(QPainter.Antialiasing, True)
+        painter.setPen(QColor(current_color))
+        painter.setFont(QFont(self.more_widget.family, 11, QFont.Bold))
+        painter.drawText(rect.adjusted(10, 10, -10, -10), Qt.AlignCenter,
+                         '文字颜色')
+        painter.restore()
         # if option.state & QStyle.State_MouseOver:
         # pass
 
@@ -199,9 +218,11 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                 self.list_widget.setCurrentRow(index)
 
         def show_policy(self, custs: List, current: str):
-            self.add_cust(custs, current)
-            self.exec_()
-            self.list_widget.setFocus(True)
+            if custs:
+                convert_cust = [file_name for file_name, text_color in custs]
+                self.add_cust(convert_cust, current)
+                self.exec_()
+                self.list_widget.setFocus(True)
 
         list_style = '''
             QListWidget::Item:hover:active{
@@ -231,7 +252,7 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         list_widget.setVerticalScrollMode(
             QListWidget.ScrollPerPixel)  # 滚动方式,像素滚动
         list_widget.verticalScrollBar().setSingleStep(15)
-        list_widget.setItemDelegate(MoreDelegate())
+        list_widget.setItemDelegate(MoreDelegate(self))
         list_widget.setSpacing(5)
 
         temp = self.cust_images
@@ -280,8 +301,10 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
     def cust_image(self):
         ...
 
-    @settings_property(
-        [], lambda result: [file for file in result if os.path.exists(file)])
+    @settings_property([], lambda result: [[file, text_color]
+                                           for file, text_color in result
+                                           if os.path.exists(file)]
+                       if result else [])
     def cust_images(self):
         ...
 
@@ -318,12 +341,22 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         ...
 
     @pyqtSlot(str)
-    def _change(self, color_name: str) -> None:
+    def _change(self, color_name: str) -> None:  # 设置背景色,字体色
+        flags = None
+        if self.use_cust_image and self.cust_image:
+            lis = deepcopy(self.cust_images)
+            flags = [pic for pic, text_color in lis]
+            index = flags.index(self.cust_image)
+
         if self.sender() == self.text_browser._text_color:
             self.pushButton_5.setStyleSheet(
                 'background:%s; border:1px solid white;border-radius:3px' %
                 color_name)
             self.cust_f_color = color_name
+            if flags is not None:
+                lis[index][-1] = color_name
+                self.cust_images = lis
+
         elif self.sender() == self.text_browser._bkg_color:
             self.pushButton_4.setStyleSheet(
                 'background:%s; border:1px solid white;border-radius:3px' %
@@ -356,26 +389,41 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                 self, '选择背景图片', desk, filter='图片文件(*.jpg;*.png;*.jpeg)')
         if file:
             self.cust_image = file
-            temp = self.cust_images
-            if file not in temp and len(temp) <= 9:
-                temp.append(file)
-            elif file not in temp:
-                temp[0] = file
-            self.cust_images = temp
+            temp: list = deepcopy(self.cust_images)
+            contains = lambda value, lis: [
+                index for index, e in enumerate(lis) if value in e
+            ]
+            is_in = contains(file, temp)
+
+            if not bool(is_in) and len(temp) <= 9:
+                temp.append([file])
+                flag = 1
+            elif not bool(is_in):
+                temp[0][0] = file
+                flag = 2
+            else:
+                flag = 3
             self.background_button.setToolTip(file)
             self.background_button.setStyleSheet(
                 'border:1px solid white;border-radius:3px;background-image:url(%s);background-repeat:repeat-xy;'
                 % file)
             image = QImage(file)
             color = image.pixelColor(image.width() / 2, 40)  # 取样背景色
-            ivt_color = QColor(255 - color.red(), 255 - color.green(),
-                               255 - color.blue())  # 背景色取反
+            if flag in (1, 2):  # 重新加载
+                ivt_color = QColor(255 - color.red(), 255 - color.green(),
+                                   255 - color.blue())  # 背景色取反
+                temp[-1] = [file, ivt_color.name()]
+            else:
+                ivt_color = QColor(temp[is_in[0]][-1])
+                temp[is_in[0]] = [file, ivt_color.name()]
+            self.cust_images = temp
             self.pushButton_4.setStyleSheet(
                 'border: 1px solid white;border-radius:3px;background-color: %s'
                 % color.name())
             self.pushButton_5.setStyleSheet(
                 'border: 1px solid white;border-radius:3px;background-color: %s'
                 % ivt_color.name())
+
             self.cust_b_color = color.name()
             self.cust_f_color = ivt_color.name()
             self.checkBox_2.setChecked(True)

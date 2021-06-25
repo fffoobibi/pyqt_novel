@@ -3736,13 +3736,11 @@ class AutoSplitContentTaskReadWidget(QWidget,
             msg = chapter_name + f'({self.current_page+1}/{self.pageCount()})'
 
         elif self.flag == FlagAction.scroll_to_split:  # 翻页转换
-            # print('scroll -> split ', self.by_first_line, self.current_chapter)
             self.computePages(content,
                               latest.percent,
                               by_first_line=self.by_first_line,
                               is_title=False)
             msg = chapter_name + f'({self.current_page+1}/{self.pageCount()})'
-            # self.update_latest()
 
         elif self.flag == FlagAction.from_bookmark:
             self.computePages(content,
@@ -3750,7 +3748,6 @@ class AutoSplitContentTaskReadWidget(QWidget,
                               by_first_line=self.by_first_line,
                               is_title=False)
             msg = chapter_name + f'({self.current_page+1}/{self.pageCount()})'
-            # self.update_latest()
         self.task_widget.load_chapter_init(msg)
         self.content_length = len(''.join(content))
         self.update_latest()
@@ -3972,6 +3969,7 @@ class AutoSplitContentTaskReadWidget(QWidget,
         label.setStyleSheet('border:0px solid black')
         if p_title:
             label.setFont(self._title_font)
+            label.setStyleSheet('font-weight:bold')
         else:
             label.setFont(self._read_font)
         label.setText(line)

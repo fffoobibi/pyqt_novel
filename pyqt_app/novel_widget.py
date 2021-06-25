@@ -197,8 +197,9 @@ class NovelWidget(QWidget, Ui_Form, HumReadMixin):
 
     @pyqtSlot(str)
     def titleMsgInfo(self, msg: str, strong=False, color=None) -> None:
-        if self.infs_widget and self.infs_widget.stackedWidget_2.currentIndex(
-        ) == 0:  # 阅读页面
+        # if self.infs_widget and self.infs_widget.stackedWidget_2.currentIndex(
+        # ) == 0:  # 阅读页面
+        if self.infs_widget and self.infs_widget.in_read:
             self.infs_widget.readbar_widget.titleMsgInfo(msg, strong, color)
         else:
             show_color = QColor(color)

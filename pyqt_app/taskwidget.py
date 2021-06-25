@@ -6,6 +6,7 @@ from enum import Enum
 from copy import deepcopy
 from types import MethodType
 from typing import Any, Callable, List, Union
+from PIL import Image
 
 from PyQt5.QtWidgets import (QButtonGroup, QDialog, QFrame, QHBoxLayout,
                              QLabel, QListWidget, QListWidgetItem, QPushButton,
@@ -163,8 +164,8 @@ class MoreDelegate(QStyledItemDelegate):
             painter.fillRect(rect, QColor(0, 0, 0, 150))
 
         cust_images = self.more_widget.cust_images
-        flags = [pic for pic, text_color in cust_images]
-        current_color = cust_images[flags.index(current_file)][-1]
+        flags = [pic for pic, text_colo, bkg_color in cust_images]
+        current_color = cust_images[flags.index(current_file)][1]
         painter.save()
         painter.setRenderHint(QPainter.Antialiasing, True)
         painter.setPen(QColor(current_color))
@@ -219,7 +220,8 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
 
         def show_policy(self, custs: List, current: str):
             if custs:
-                convert_cust = [file_name for file_name, text_color in custs]
+                convert_cust = [file_name for file_name, text_color, bkg_color in custs]
+                convert_cust.reverse()
                 self.add_cust(convert_cust, current)
                 self.exec_()
                 self.list_widget.setFocus(True)
@@ -301,8 +303,8 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
     def cust_image(self):
         ...
 
-    @settings_property([], lambda result: [[file, text_color]
-                                           for file, text_color in result
+    @settings_property([], lambda result: [[file, text_color, bkg_color]
+                                           for file, text_color, bkg_color in result
                                            if os.path.exists(file)]
                        if result else [])
     def cust_images(self):
@@ -345,7 +347,7 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         flags = None
         if self.use_cust_image and self.cust_image:
             lis = deepcopy(self.cust_images)
-            flags = [pic for pic, text_color in lis]
+            flags = [pic for pic, text_color, bkg_color in lis]
             index = flags.index(self.cust_image)
 
         if self.sender() == self.text_browser._text_color:
@@ -354,7 +356,7 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                 color_name)
             self.cust_f_color = color_name
             if flags is not None:
-                lis[index][-1] = color_name
+                lis[index][1] = color_name
                 self.cust_images = lis
 
         elif self.sender() == self.text_browser._bkg_color:
@@ -362,6 +364,10 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                 'background:%s; border:1px solid white;border-radius:3px' %
                 color_name)
             self.cust_b_color = color_name
+            if flags is not None:
+                lis[index][-1] = color_name
+                self.cust_images = lis
+
         if self.checkBox_2.isChecked():
             self.task_widget.setReadStyle(self.cust_b_color, self.cust_f_color,
                                           None)
@@ -407,15 +413,17 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
             self.background_button.setStyleSheet(
                 'border:1px solid white;border-radius:3px;background-image:url(%s);background-repeat:repeat-xy;'
                 % file)
-            image = QImage(file)
-            color = image.pixelColor(image.width() / 2, 40)  # 取样背景色
-            if flag in (1, 2):  # 重新加载
+            
+            if flag in (1, 2):  # 首次添加
+                image = QImage(file)
+                color = image.pixelColor(image.width() / 2, max(40, image.height() * .5))  # 取样背景色
                 ivt_color = QColor(255 - color.red(), 255 - color.green(),
                                    255 - color.blue())  # 背景色取反
-                temp[-1] = [file, ivt_color.name()]
+                temp[-1] = [file, ivt_color.name(), color.name()]
             else:
-                ivt_color = QColor(temp[is_in[0]][-1])
-                temp[is_in[0]] = [file, ivt_color.name()]
+                color = QColor(temp[is_in[0]][-1])
+                ivt_color = QColor(temp[is_in[0]][1])
+                temp[is_in[0]] = [file, ivt_color.name(), color.name()]
             self.cust_images = temp
             self.pushButton_4.setStyleSheet(
                 'border: 1px solid white;border-radius:3px;background-color: %s'
@@ -1463,7 +1471,7 @@ class TaskWidget(QWidget, Ui_Form):
         current_chapter = self.textBrowser.current_chapter
         current_mark = self.textBrowser.current_markup
         theme = self.more_widget.theme
-        msg_color = self.style_handle.getMsgColor(theme)
+        msg_color = self.more_widget.cust_f_color
         if current_mark:
             if self.chapters_widget.remove_bookmark(current_mark):
                 self._inf.remove_bookmark(current_mark.index,
@@ -1578,7 +1586,7 @@ class TaskWidget(QWidget, Ui_Form):
                             content=content,
                             is_title=is_title)
             theme = self.more_widget.theme
-            msg_color = self.style_handle.getMsgColor(theme)
+            msg_color = self.more_widget.cust_f_color
             self._inf.novel_read_infos.setdefault('book_marks', [])
             self._inf.novel_read_infos['book_marks'].append(markup)
             self.chapters_widget.add_book_mark(markup)

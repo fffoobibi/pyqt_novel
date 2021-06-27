@@ -26,12 +26,14 @@ from PyQt5.QtWidgets import (
     QListView, QAbstractItemView, QLineEdit, QVBoxLayout, QCheckBox, QToolTip,
     QComboBox, QHBoxLayout, QPlainTextEdit, QShortcut, QCompleter, QAction,
     QMessageBox, QStackedWidget, QWidgetAction)
+
 from PyQt5.QtCore import (QFile, QObject, QSemaphore, QTextStream, QThread, Qt,
                           QFileInfo, QDir, pyqtSignal, pyqtSlot, QMimeData,
                           QSize, QPropertyAnimation, QUrl, QPoint, QRect,
                           QEvent, QRectF, QRegExp, QRegularExpression,
                           QRegularExpressionMatchIterator, qRound,
                           QSortFilterProxyModel)
+
 from PyQt5.QtGui import (QIntValidator, QPixmap, QIcon, QMouseEvent, QCursor,
                          QDragEnterEvent, QDragMoveEvent, QDropEvent, QDrag,
                          QDesktopServices, QPen, QColor, QPainter,
@@ -42,13 +44,8 @@ from PyQt5.QtGui import (QIntValidator, QPixmap, QIcon, QMouseEvent, QCursor,
 
 from PyQt5.QtSvg import QSvgRenderer
 
-from .styles import (COLOR, listwidget_v_scrollbar, listwidget_h_scrollbar,
-                     menu_style, search_combo_listview_style,
-                     font_combo_listwidget_style, search_combo_style,
-                     menu_button_style, site_button_listview_style,
-                     site_button_v_scrollbar)
 from .magic import lasyproperty
-from .common_srcs import CommonPixmaps
+from .common_srcs import CommonPixmaps, StyleSheets, COLORS
 from .titlebar import TitleBar
 
 from crawl_novel import (InfoObj, InfTools, get_spider_byname, LatestRead,
@@ -650,7 +647,7 @@ class IconWidget(QWidget):
 
     SHOW_TIP = True  # 显示tooltip
 
-    BKG_COLOR = COLOR["icon_hover_color"]  # 悬浮颜色
+    BKG_COLOR = COLORS.icon_hover_color  # 悬浮颜色
 
     MARGINS = 10, 10, 10, 10
 
@@ -669,7 +666,7 @@ class IconWidget(QWidget):
         "#9ACD32",
     ]
 
-    scaled = 0.6
+    scaled: float = 0.6
 
     introutced_signal = pyqtSignal(InfoObj)
 
@@ -998,7 +995,7 @@ class IconWidget(QWidget):
         fm = menu.fontMetrics()
         width = fm.width("这" * 10)
         menu.setFixedWidth(width)
-        menu.setStyleSheet(menu_style)
+        menu.setStyleSheet(StyleSheets.menu_style)
         a1 = menu.addAction(QIcon(":/ico/book_128px_1138983_easyicon.net.ico"),
                             "打开详情")
         a1.setCheckable(True)
@@ -1021,7 +1018,7 @@ class IconWidget(QWidget):
         if self.inf.novel_subs_url and (self.inf._is_file == False):
             menu.addSeparator()
             sub_menu = QMenu("订阅")
-            sub_menu.setStyleSheet(menu_style)
+            sub_menu.setStyleSheet(StyleSheets.menu_style)
             a6 = sub_menu.addAction("订阅此项")
             a7 = sub_menu.addAction("取消订阅")
             a6.setCheckable(True)
@@ -1090,7 +1087,7 @@ class IconWidget(QWidget):
 
     @pyqtSlot()
     def _downOkFlag(self) -> None:
-        self.file_label.stateDone(COLOR["down_ok"])
+        self.file_label.stateDone(COLORS.down_ok)
 
     @pyqtSlot()
     def _downIngFlag(self) -> None:
@@ -1104,7 +1101,7 @@ class IconWidget(QWidget):
 
     @pyqtSlot()
     def _downFailFlag(self) -> None:
-        self.file_label.waveStop(100, QColor(COLOR["down_fail"]))
+        self.file_label.waveStop(100, QColor(COLORS.down_fail))
 
 
 def setIconsToolTip(show: bool) -> None:
@@ -1545,7 +1542,7 @@ class SubscribeWidget(QWidget):
 
     SHOW_TIP = True
 
-    HOVER_COLOR = COLOR["icon_hover_color"]
+    HOVER_COLOR = COLORS.icon_hover_color
 
     IMG_DFT_SIZE = 180, 240
 
@@ -1660,7 +1657,7 @@ class SubscribeWidget(QWidget):
         y = h - self.text_height - self.margins
         _w = w - self.margins * 2
         _h = self.text_height
-        self.text_color = QColor(COLOR["down_ok"])
+        self.text_color = QColor(COLORS.down_ok)
         self.update(x, y, _w, _h)
 
     @pyqtSlot()
@@ -1676,7 +1673,7 @@ class SubscribeWidget(QWidget):
 
     @pyqtSlot()
     def _downFailFlag(self) -> None:
-        self.text_color = QColor(COLOR["down_fail"])
+        self.text_color = QColor(COLORS.down_fail)
         self.update()
 
     def __init__(self, info: InfoObj, list_widget, **kwargs):
@@ -1735,7 +1732,7 @@ class SubscribeWidget(QWidget):
         if self.info:
             novel_app = self.info.novel_app
             menu = QMenu(self)
-            menu.setStyleSheet(menu_style)
+            menu.setStyleSheet(StyleSheets.menu_style)
             fm = menu.fontMetrics()
             width = fm.width("这" * 10)
             menu.setFixedWidth(width)
@@ -2087,7 +2084,7 @@ class SiteButton(QPushButton):
         self.__combobox = QComboBox(self)
         self.__listwidget = QListWidget()
         self.__listwidget.verticalScrollBar().setStyleSheet(
-            site_button_v_scrollbar)
+            StyleSheets.vertical_scroll_style) #site_button_v_scrollbar
         self.__combobox.setModel(self.__listwidget.model())
         self.__combobox.setView(self.__listwidget)
         self.__combobox.setGeometry(0, 0, width, height)
@@ -2097,7 +2094,7 @@ class SiteButton(QPushButton):
         self.__seprator = False
         self.select_all = False
         self.clicked.connect(self.showPopup)
-        self.__listwidget.setStyleSheet(site_button_listview_style)
+        self.__listwidget.setStyleSheet(StyleSheets.site_button_listview_style)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self.customContext)
 
@@ -2273,8 +2270,8 @@ class DebugTextEdit(QPlainTextEdit):
         self.setStyleSheet(
             "selection-background-color: lightblue;selection-color:black;background:white"
         )
-        self.verticalScrollBar().setStyleSheet(listwidget_v_scrollbar)
-        self.horizontalScrollBar().setStyleSheet(listwidget_h_scrollbar)
+        self.verticalScrollBar().setStyleSheet(StyleSheets.debugtextedit_v_scroll_style)
+        self.horizontalScrollBar().setStyleSheet(StyleSheets.debugtextedit_h_scroll_style)
 
     @lasyproperty
     def logger(self) -> logging.Logger:
@@ -2305,7 +2302,7 @@ class DebugTextEdit(QPlainTextEdit):
     def _menuPolicy(self) -> None:
         clip = QApplication.clipboard()
         menu = QMenu(self)
-        menu.setStyleSheet(menu_style)
+        menu.setStyleSheet(StyleSheets.menu_style)
         a1 = menu.addAction("复制")
         a2 = menu.addAction("选择全部")
         a1.setShortcut("ctrl+c")
@@ -2478,7 +2475,7 @@ class FailTextEdit(DebugTextEdit):
     def _menuPolicy(self) -> None:
         clip = QApplication.clipboard()
         menu = QMenu(self)
-        menu.setStyleSheet(menu_style)
+        menu.setStyleSheet(StyleSheets.menu_style)
         a1 = menu.addAction("复制")
         a3 = menu.addAction("搜索")
         a2 = menu.addAction("选择全部")
@@ -2897,10 +2894,10 @@ class HistoryComboBox(QComboBox):
         font = QFont("微软雅黑", 9)
         font.setBold(True)
         view.setFont(font)
-        view.setStyleSheet(search_combo_listview_style)
+        view.setStyleSheet(StyleSheets.historycombobox_listview_style)
         self.setView(view)
         self.setLineEdit(self.search_line)
-        self.setStyleSheet(search_combo_style)
+        self.setStyleSheet(StyleSheets.historycombobox_style)
         self.setContextMenuPolicy(Qt.NoContextMenu)
 
     def setMaxLength(self, length: int) -> None:
@@ -2951,7 +2948,7 @@ class FontCombobox(QComboBox):
         self.font_line.setStyleSheet("color:white")
         self.font_line.setReadOnly(True)
         self.list_widget = QListWidget()
-        self.list_widget.setStyleSheet(font_combo_listwidget_style)
+        self.list_widget.setStyleSheet(StyleSheets.font_combo_listwidget_style)
         self.setView(self.list_widget)
         self.setModel(self.list_widget.model())
         self.setLineEdit(self.font_line)
@@ -3058,7 +3055,7 @@ class MenuButton(QPushButton):
             QSize(button_size * icon_scaled[0], button_size * icon_scaled[1]))
         self.setCheckable(True)
         self.setChecked(start_state)
-        self.setStyleSheet(menu_button_style)
+        self.setStyleSheet(StyleSheets.menu_button_style)
         self.onClicked()
         self.clicked.connect(self.onClicked)
 
@@ -3249,7 +3246,8 @@ class FlagAction(IntEnum):
 
 
 class BaseTaskReadPropertys(object):
-    def __init__(self) -> None:
+    def __init__(self, *args, **kwargs) -> None:
+        self.task_widget: 'TaskWidget' = kwargs.pop('task_widget', None)
         self.flag: FlagAction = FlagAction.undefined
         self.messages: dict = None
         self.current_index: int = -1
@@ -3390,44 +3388,13 @@ class BaseTaskReadPropertys(object):
         )
 
     def _customTextMenu(self) -> None:
-        menu_style = '''
-            QMenu {
-            background-color : %s;
-            padding:5px;
-            border:1px solid %s
-            }
-            QMenu::item {
-                font-size:9pt;
-                background-color: %s;
-                color: %s;
-                padding: 10px 3px 8px 3px;
-                margin: 3px 3px;
-            }
-            QMenu::item:selected {
-                background-color : red;
-            }
-            QMenu::icon:checked {
-                background: rgb(253,253,254);
-                position: absolute;
-                top: 1px;
-                right: 1px;
-                bottom: 1px;
-                left: 1px;
-            }
-            QMenu::separator {
-                height: 2px;
-                background: rgb(235,235,236);
-                margin-left: 10px;
-                margin-right: 10px;
-            }'''
-
         pala = self.palette()
         bkg_color = pala.color(QPalette.Background).name()
         text_color = pala.color(QPalette.Text).name()
 
         font = QFont("微软雅黑", 9)
         menu = QMenu(self)
-        menu.setStyleSheet(menu_style %
+        menu.setStyleSheet(StyleSheets.dynamic_menu_style %
                            (text_color, text_color, text_color, bkg_color))
         menu.setFixedWidth(menu.fontMetrics().widthChar("操") * 10 + 5)
         l_style = "QLabel{color:%s; background:%s;font-family:微软雅黑;font-size:9pt;font-weight:bold}QLabel:hover{background:%s;color:%s}" % (
@@ -3524,43 +3491,12 @@ class BaseTaskReadPropertys(object):
 class AutoSplitContentTaskReadWidget(QWidget,
                                      BaseTaskReadPropertys):  # 自动分页阅读组件
     def _customTextMenu(self) -> None:
-        menu_style = '''
-            QMenu {
-            background-color : %s;
-            padding:5px;
-            border:1px solid %s
-            }
-            QMenu::item {
-                font-size:9pt;
-                background-color: %s;
-                color: %s;
-                padding: 10px 3px 8px 3px;
-                margin: 3px 3px;
-            }
-            QMenu::item:selected {
-                background-color : red;
-            }
-            QMenu::icon:checked {
-                background: rgb(253,253,254);
-                position: absolute;
-                top: 1px;
-                right: 1px;
-                bottom: 1px;
-                left: 1px;
-            }
-            QMenu::separator {
-                height: 2px;
-                background: rgb(235,235,236);
-                margin-left: 10px;
-                margin-right: 10px;
-            }'''
-
         bkg_color = self.bkg_color.name()
         text_color = self.text_color.name()
 
         font = QFont("微软雅黑", 9)
         menu = QMenu(self)
-        menu.setStyleSheet(menu_style %
+        menu.setStyleSheet(StyleSheets.dynamic_menu_style %
                            (text_color, text_color, text_color, bkg_color))
         menu.setFixedWidth(menu.fontMetrics().widthChar("操") * 10 + 5)
         l_style = "QLabel{color:%s; background:%s;font-family:微软雅黑;font-size:9pt;font-weight:bold}QLabel:hover{background:%s;color:%s}" % (
@@ -3648,7 +3584,6 @@ class AutoSplitContentTaskReadWidget(QWidget,
         return QTextCursor()
 
     def __init__(self, *args, **kwargs):
-        self.task_widget: "TaskWidget" = kwargs.pop("task_widget", None)
         super().__init__(*args, **kwargs)
         self._read_font = QFont(self.font_family, self.font_size)
         self._read_font.setLetterSpacing(QFont.AbsoluteSpacing,
@@ -4361,7 +4296,6 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadPropertys):
         self.current_mark = mark
 
     def __init__(self, *args, **kwargs) -> None:
-        self.task_widget: "TaskWidget" = kwargs.pop("task_widget", None)
         super().__init__(*args, **kwargs)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(self._customTextMenu)

@@ -1,4 +1,7 @@
-class CommonPixmaps:
+from enum import Enum
+from PyQt5.QtGui import QColor, qRgba
+
+class CommonPixmaps(object):
     
     state_pixmap = ':/ico/checked_1206678_easyicon.net.svg'
     app_ico = ':/ico/蜘蛛.svg'
@@ -57,4 +60,149 @@ class CommonPixmaps:
     selectdia_read_svg = ':/ico/阅读.svg'
 
 
+class StyleSheets(str, Enum):
 
+    chapter_list_style = ''' 
+        QListWidget::Item:hover:active{background-color: rgba(153, 149, 149, 80);color:#CCCCCC;border:none}
+        QListWidget::Item{color:#CCCCCC; border:none;margin-left:10px}
+        QListWidget::Item:selected{background-color: black;color: #CC295F}
+        QListWidget{outline:0px; background-color: transparent; border:none}
+    '''  # chapters_widget listwidget
+
+    vertical_scroll_style = '''
+        QScrollBar:vertical {background: black; padding: 0px;border-radius: 3px; max-width: 12px;}
+        QScrollBar::handle:vertical {background: rgba(153, 149, 149, 80);min-height: 20px;border-radius: 3px;}
+        QScrollBar::add-page:vertical {background: none;}
+        QScrollBar::sub-page:vertical {background: none;}
+        QScrollBar::add-line:vertical { background: none;}
+        QScrollBar::sub-line:vertical {background: none; }
+    '''  # more_widget scrollarea 
+
+    pic_dialog_list_style = '''
+            QListWidget::Item:hover:active{background-color: transparent; color:#CCCCCC;border:none}
+            QListWidget::Item{color:#CCCCCC;border:none}
+            QListWidget::Item:selected{ background-color: black;color: #CC295F}
+            QListWidget{outline:0px; background-color: transparent; border:none}
+        ''' # more_widget latest_dialog listwidget
+
+    pic_dialog_style = '''
+        QDialog{border:1px solid gray}QLabel{color:white; font-family: 微软雅黑}QPushButton{color:white;font-family: 微软雅黑}
+        ''' # more_widget latest_dialog
+
+    debugtextedit_v_scroll_style= '''
+        QScrollBar:vertical {background: #E4E4E4;padding: 0px; border-radius: 3px;max-width: 12px;}
+        QScrollBar::handle:vertical {background: lightgray; min-height: 20px; border-radius: 3px;}
+        QScrollBar::handle:vertical:hover {background: #00BB9E;}
+        QScrollBar::handle:vertical:pressed {background: #00BB9E;}
+        QScrollBar::add-page:vertical { background: none;}
+        QScrollBar::sub-page:vertical {background: none;}
+        QScrollBar::add-line:vertical {background: none;}
+        QScrollBar::sub-line:vertical {background: none;}
+        '''
+  
+    debugtextedit_h_scroll_style = '''
+        QScrollBar:horizontal {background: #E4E4E4;padding: 0px;border-radius: 3px;max-height: 12px;}
+        QScrollBar::handle:horizontal {background: lightgray;min-width: 20px;border-radius: 3px;}
+        QScrollBar::handle:horizontal:hover {background: #00BB9E;}
+        QScrollBar::handle:horizontal:pressed {background: #00BB9E;}
+        QScrollBar::add-page:horizontal {background: none;}
+        QScrollBar::sub-page:horizontal {background: none;}
+        QScrollBar::add-line:horizontal {background: none;}
+        QScrollBar::sub-line:horizontal {background: none;}'''
+
+    historycombobox_listview_style = '''
+        QListView {outline: 0px;color: black;}
+        QListView::item:hover {color: black;background-color: lightgreen;}
+        QListView::item{color: black;background-color: white;}'''
+
+    historycombobox_style = '''
+        QComboBox {font-family: "Microsoft YaHei";color: #000000;font-weight: bold;padding-left: 1px;border: 1px solid lightgray;border-radius:5px}
+        QComboBox::drop-down{subcontrol-origin: padding;subcontrol-position: center right;width:30px;height:36px;border-left: none;}
+        QComboBox::down-arrow{width:  30px;height: 30px;image: url(':/ico/arrow_drop_down.svg')}'''
+
+    site_button_listview_style = '''
+        QListView::item:hover{background: white;color:black;}
+        QListView::item{border-bottom:1px solid rgb(212, 212, 212)}
+        QListView{outline:0px;background: transparent;border:1px solid lightgray}'''
+
+    menu_button_style = '''
+        QPushButton{background-color:transparent; border: none; font-family: 微软雅黑}
+        QPushButton:hover{color: #474746;background-color:#DBDBDB; border:none}
+        QPushButton:pressed{color: #474746;background-color:#DBDBDB; border:none} '''
+
+    menubar_button_style = '''
+        QPushButton{background-color:transparent; border:none;text-align:right;font-family: 微软雅黑;font-size:9pt}
+        QPushButton:hover{color: #474746;background-color:#DBDBDB}
+        QPushButton:pressed{color: #474746;background-color:#DBDBDB} 
+        QPushButton::menu-indicator{image:none}'''
+
+    font_combo_listwidget_style= '''
+        QListWidget::Item:hover:active{background-color: rgba(153, 149, 149, 80); color:white}
+        QListWidget{outline:0px; background-color: black; color: white; border: 1px solid lightgray}'''
+
+    menu_style= '''
+        QMenu {background-color : rgb(253,253,254);padding:5px;border:1px solid lightgray;}
+        QMenu::item {font-size:9pt;color: black;background-color:rgb(253,253,254);padding: 10px 3px 8px 3px;margin: 3px 3px;}
+        QMenu::item:selected {background-color : rgb(236,236,237);}
+        QMenu::icon:checked {background: rgb(253,253,254);position: absolute;top: 1px;right: 1px;bottom: 1px;left: 1px;}
+        QMenu::icon:checked:selected {background-color : rgb(236,236,237);background-image: url(:/space_selected.png);}
+        QMenu::separator {height: 2px;background: rgb(235,235,236);margin-left: 10px;margin-right: 10px;}'''
+
+    menubar_menu_style = '''
+        QMenu{background-color : #BEBEBE;border:1px solid #BEBEBE;}
+        QMenu::item {font-size:9pt;color: black;background-color:#BEBEBE;padding: 5px 3px 8px 3px;margin: 3px 3px;}
+        QMenu::item:selected {background-color : #f4f4f4;}
+        QMenu::separator {height: 2px;background: #CECDCD;margin-left: 2px;margin-right: 2px;}'''
+
+    dynamic_menu_style = '''
+            QMenu {background-color : %s;padding:5px;border:1px solid %s}
+            QMenu::item {font-size:9pt;background-color: %s;color: %s;padding: 10px 3px 8px 3px;margin: 3px 3px;}
+            QMenu::item:selected { background-color : red;}
+            QMenu::icon:checked {background: rgb(253,253,254); position: absolute;top: 1px;right: 1px;bottom: 1px;left: 1px;}
+            QMenu::separator {height: 2px;background: rgb(235,235,236);margin-left: 10px;margin-right: 10px;}'''
+
+    submit_list_style = '''
+        QListWidget::Item:hover{background-color:transparent;color:black}
+        QListWidget::Item{/*border-bottom:1px solid rgb(212, 212, 212)*/}
+        QListWidget::Item:selected{background-color: transparent;color:black;border-radius:5px}
+        QListWidget{outline:0px; background-color: transparent;border-top:1px solid lightgray;border-bottom:1px solid lightgray;
+            border-left:0px solid lightgray;border-right:0px solid lightgray;}'''
+
+    green_v_scroll_style = '''
+        QScrollBar:vertical {background: #E4E4E4;padding: 0px;border-radius: 3px;max-width: 12px;}
+        QScrollBar::handle:vertical {background: lightgray;min-height: 20px;border-radius: 3px;}
+        QScrollBar::handle:vertical:hover {background: #00BB9E;}
+        QScrollBar::handle:vertical:pressed {background: #00BB9E;}
+        QScrollBar::add-page:vertical {background: none;}
+        QScrollBar::sub-page:vertical {background: none;}
+        QScrollBar::add-line:vertical {background: none;}
+        QScrollBar::sub-line:vertical {background: none;}'''
+
+    list_page_style = '''
+        QListWidget::Item:hover{background-color: white; color:black; border:none}
+        QListWidget::Item{border-bottom:1px solid rgb(212, 212, 212)}
+        QListWidget::Item:selected{background-color: lightgray;color:black}
+        QListWidget{outline:0px; background-color: transparent;border:none}
+        '''
+    icon_page_style = '''
+        QListWidget::Item:hover{background-color:transparent;color:black}
+        QListWidget::Item{border-bottom:1px solid rgb(212, 212, 212)}
+        QListWidget::Item:selected{background-color: white;color:black;border-radius:5px}
+        QListWidget{outline:0px; background-color: transparent;border:none}'''
+
+    fileter_listview_style = '''
+        QListView::item:hover{background: white;color:black;border:none}
+        QListView::item{border-bottom:1px solid rgb(212, 212, 212)}
+        QListView::item:selected{background: lightgray;color:black}
+        QListView{outline:0px;background: transparent;border:none}'''
+        
+class COLORS(object):
+    undo = '#787C8A'  # 任务初始颜色
+    doing = '#9ACD32' # 下载中颜色
+    done = '#F08080'  # 下载完成颜色
+    down_ok = '#27A6F4'  # 已下载颜色
+    down_fail = '#EABF4A' # 下载失败颜色
+    icon_hover_color = QColor(50, 50, 50, 120) # 悬浮颜色
+
+# print(QColor.fromRgba(qRgba(50, 50, 50, 120)))
+# print(QColor('qrgba(50, 50, 50, 120)').isValid())

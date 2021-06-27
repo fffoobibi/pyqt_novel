@@ -6,7 +6,6 @@ from enum import Enum
 from copy import deepcopy
 from types import MethodType
 from typing import Any, Callable, List, Union
-from PIL import Image
 
 from PyQt5.QtWidgets import (QButtonGroup, QDialog, QFrame, QHBoxLayout,
                              QLabel, QListWidget, QListWidgetItem, QPushButton,
@@ -20,58 +19,20 @@ from PyQt5.QtGui import (QImage, QPixmap, QColor, QPainter, QPen, QCursor,
 
 from crawl_novel import InfoObj, EightSpider, get_spider_byname, DownStatus, Markup, LatestRead
 
-from .taskwidgetui import Ui_Form
-from .common_srcs import CommonPixmaps
-from .customwidgets import AutoSplitContentTaskReadWidget, BaseTaskReadPropertys, FlagAction, IconWidget, SubscribeWidget, get_subscribeLinkobj, TaskReadBrowser, FInValidator
-from .styles import listwidget_v_scrollbar, menu_style, COLOR, read_v_style
 from .magic import qmixin, lasyproperty
+from .common_srcs import CommonPixmaps, StyleSheets, COLORS
+from .customwidgets import (AutoSplitContentTaskReadWidget,
+                            BaseTaskReadPropertys, FlagAction, IconWidget,
+                            SubscribeWidget, get_subscribeLinkobj,
+                            TaskReadBrowser, FInValidator)
+
+from .taskwidgetui import Ui_Form
 from .more_widgetui import Ui_Form as MoreUi
 from .chapter_widgetui import Ui_Form as ChapterUi
 
 __all__ = ('PageState', 'TaskWidget')
 
 ColorTypes = Union[QColor, Qt.GlobalColor, str, int]
-
-c_list_style = '''
-    QListWidget::Item:hover:active{
-    background-color: rgba(153, 149, 149, 80);
-    color:#CCCCCC;
-    border:none}
-    QListWidget::Item{
-    color:#CCCCCC;
-    border:none;
-    margin-left:10px}
-    QListWidget::Item:selected{
-    background-color: black;
-    color: #CC295F}
-    QListWidget{outline:0px; background-color: transparent; border:none}
-'''
-
-s_list_style = '''
-    QScrollBar:vertical {
-        background: black;
-        padding: 0px;
-        border-radius: 3px;
-        max-width: 12px;
-    }
-    QScrollBar::handle:vertical {
-        background: rgba(153, 149, 149, 80);
-        min-height: 20px;
-        border-radius: 3px;
-    }
-    QScrollBar::add-page:vertical {
-        background: none;
-    }
-    QScrollBar::sub-page:vertical {
-        background: none;
-    }
-    QScrollBar::add-line:vertical {
-        background: none;
-    }
-    QScrollBar::sub-line:vertical {
-        background: none;
-    }
-'''
 
 
 class BrightManager:  # 改变屏幕亮度
@@ -198,11 +159,11 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
 
     @lasyproperty
     def latest_dialog(self) -> QDialog:
-        def item_click():
-            item = list_widget.currentItem()
+        def item_click(self):
+            item = self.list_widget.currentItem()
             pix = item.data(Qt.UserRole)
-            dialog.close()
-            self.setBackgroundPic(pix)
+            self.close()
+            self.more_widget.setBackgroundPic(pix)
 
         def add_cust(self, custs: List, current: str):
             self.list_widget.clear()
@@ -220,37 +181,29 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
 
         def show_policy(self, custs: List, current: str):
             if custs:
-                convert_cust = [file_name for file_name, text_color, bkg_color in custs]
+                convert_cust = [
+                    file_name for file_name, text_color, bkg_color in custs
+                ]
                 convert_cust.reverse()
                 self.add_cust(convert_cust, current)
                 self.exec_()
                 self.list_widget.setFocus(True)
 
-        list_style = '''
-            QListWidget::Item:hover:active{
-            background-color: transparent;
-            color:#CCCCCC;
-            border:none}
-            QListWidget::Item{
-            color:#CCCCCC;
-            border:none}
-            QListWidget::Item:selected{
-            background-color: black;
-            color: #CC295F}
-            QListWidget{outline:0px; background-color: transparent; border:none}
-        '''
-        dialog_style = '''QDialog{border:1px solid gray}QLabel{color:white; font-family: 微软雅黑}QPushButton{color:white;font-family: 微软雅黑}
-            QListWidget{border:none}
-        '''
-
         dialog = QDialog(self)
-        dialog.setStyleSheet(dialog_style)
+        dialog.more_widget = self
+        dialog.item_click = MethodType(item_click, dialog)
+        dialog.add_cust = MethodType(add_cust, dialog)
+        dialog.show_policy = MethodType(show_policy, dialog)
+
+        dialog.setStyleSheet(StyleSheets.pic_dialog_style)
         dialog.setWindowFlags(Qt.FramelessWindowHint | dialog.windowFlags())
 
         list_widget = QListWidget()
+        dialog.list_widget = list_widget
         list_widget.setCursor(Qt.PointingHandCursor)
-        list_widget.verticalScrollBar().setStyleSheet(s_list_style)
-        list_widget.setStyleSheet(list_style)
+        list_widget.verticalScrollBar().setStyleSheet(
+            StyleSheets.vertical_scroll_style)
+        list_widget.setStyleSheet(StyleSheets.pic_dialog_list_style)
         list_widget.setVerticalScrollMode(
             QListWidget.ScrollPerPixel)  # 滚动方式,像素滚动
         list_widget.verticalScrollBar().setSingleStep(15)
@@ -269,17 +222,13 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         v.addWidget(list_widget)
         frame = QFrame()
         h = QHBoxLayout(frame)
-        bt1 = QPushButton('确认', clicked=item_click)
+        bt1 = QPushButton('确认', clicked=dialog.item_click)
         bt2 = QPushButton('取消', clicked=dialog.close)
         bt1.setCursor(Qt.PointingHandCursor)
         bt2.setCursor(Qt.PointingHandCursor)
         h.addWidget(bt1)
         h.addWidget(bt2)
         v.addWidget(frame)
-
-        dialog.list_widget = list_widget
-        dialog.add_cust = MethodType(add_cust, dialog)
-        dialog.show_policy = MethodType(show_policy, dialog)
         # dialog.hide()
         return dialog
 
@@ -303,10 +252,10 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
     def cust_image(self):
         ...
 
-    @settings_property([], lambda result: [[file, text_color, bkg_color]
-                                           for file, text_color, bkg_color in result
-                                           if os.path.exists(file)]
-                       if result else [])
+    @settings_property(
+        [], lambda result: [[file, text_color, bkg_color]
+                            for file, text_color, bkg_color in result
+                            if os.path.exists(file)] if result else [])
     def cust_images(self):
         ...
 
@@ -413,10 +362,12 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
             self.background_button.setStyleSheet(
                 'border:1px solid white;border-radius:3px;background-image:url(%s);background-repeat:repeat-xy;'
                 % file)
-            
+
             if flag in (1, 2):  # 首次添加
                 image = QImage(file)
-                color = image.pixelColor(image.width() / 2, max(40, image.height() * .5))  # 取样背景色
+                color = image.pixelColor(image.width() / 2,
+                                         max(40,
+                                             image.height() * .5))  # 取样背景色
                 ivt_color = QColor(255 - color.red(), 255 - color.green(),
                                    255 - color.blue())  # 背景色取反
                 temp[-1] = [file, ivt_color.name(), color.name()]
@@ -535,8 +486,10 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         self.lineEdit.setText(str(self.letter_spacing))
         self.lineEdit.returnPressed.connect(
             lambda: self._changeLetter(self.lineEdit.text()))
-        self.scrollArea.verticalScrollBar().setStyleSheet(s_list_style)
-        self.scrollArea_2.verticalScrollBar().setStyleSheet(s_list_style)
+        self.scrollArea.verticalScrollBar().setStyleSheet(
+            StyleSheets.vertical_scroll_style)
+        self.scrollArea_2.verticalScrollBar().setStyleSheet(
+            StyleSheets.vertical_scroll_style)
 
         self.use_image_checkbox.stateChanged.connect(self._useCustPolicy)
 
@@ -566,7 +519,8 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         self.read_combo.setFixedWidth(fm.widthChar('微') * 10)
         self.read_combo.setItemDelegate(QStyledItemDelegate())
 
-        font_combo.list_widget.verticalScrollBar().setStyleSheet(s_list_style)
+        font_combo.list_widget.verticalScrollBar().setStyleSheet(
+            StyleSheets.vertical_scroll_style)
         self.font_combo.currentIndexChanged.connect(self.updateFont)
 
         self.read_combo.currentIndexChanged.connect(self.updatePageTurning)
@@ -958,11 +912,14 @@ class ChapterWidget(QWidget, ChapterUi):  # 阅读详情页面
         self.pushButton_2.setFixedHeight(56)
         self.pushButton_3.setFixedHeight(56)
         self.pushButton_4.setFixedHeight(56)
-        self.listWidget.setStyleSheet(c_list_style)
-        self.listWidget.verticalScrollBar().setStyleSheet(s_list_style)
-        self.listWidget_2.setStyleSheet(c_list_style)
-        self.listWidget_2.verticalScrollBar().setStyleSheet(s_list_style)
-        self.textBrowser.verticalScrollBar().setStyleSheet(s_list_style)
+        self.listWidget.setStyleSheet(StyleSheets.chapter_list_style)
+        self.listWidget.verticalScrollBar().setStyleSheet(
+            StyleSheets.vertical_scroll_style)
+        self.listWidget_2.setStyleSheet(StyleSheets.chapter_list_style)
+        self.listWidget_2.verticalScrollBar().setStyleSheet(
+            StyleSheets.vertical_scroll_style)
+        self.textBrowser.verticalScrollBar().setStyleSheet(
+            StyleSheets.vertical_scroll_style)
         self.set2page()
         self.set3page()
         self.msg_label.setText(
@@ -1320,7 +1277,7 @@ class TaskWidget(QWidget, Ui_Form):
     def textMenu(self) -> None:
         clip = QApplication.clipboard()
         menu = QMenu(self.info_introduced)
-        menu.setStyleSheet(menu_style)
+        menu.setStyleSheet(StyleSheets.menu_style)
         a1 = menu.addAction('复制')
         a2 = menu.addAction('选择全部')
         a1.setShortcut('ctrl+c')
@@ -1390,12 +1347,12 @@ class TaskWidget(QWidget, Ui_Form):
         self.setStrWidth(self.label_2, '已选中: 100000个')
         self.info_introduced.setFont(self.novel_widget.cust_font)
         self.info_introduced.verticalScrollBar().setStyleSheet(
-            listwidget_v_scrollbar)
+            StyleSheets.vertical_scroll_style)
         self.info_introduced.customContextMenuRequested.connect(self.textMenu)
         self.pushButton.clicked.connect(self.closeMessage)
         self.info_down.clicked.connect(self.download)
         self.info_title.setContextMenuPolicy(Qt.CustomContextMenu)
-        self.label_17.setStyleSheet(f'color: {COLOR["undo"]}')
+        self.label_17.setStyleSheet(f'color: {COLORS.undo}')
         self.pushButton_2.clicked.connect(self.previousInf)
         self.pushButton_3.clicked.connect(self.nextInf)
         self.pushButton_4.clicked.connect(self.restart)
@@ -1707,7 +1664,6 @@ class TaskWidget(QWidget, Ui_Form):
         self.text_buttons.buttonClicked.connect(self.readButtonsPolicy)
         self.textBrowser.verticalScrollBar().valueChanged.connect(
             self.updatePercent)
-        self.textBrowser.verticalScrollBar().setStyleSheet(read_v_style)
 
         self.auto_split.task_widget = self
         self.auto_split.font_family = font.family()
@@ -1888,7 +1844,7 @@ class TaskWidget(QWidget, Ui_Form):
             self._inf.prepare_restart()
             self.showFullMessage(self._inf)
             self.progressBar.setFormat('0.0%         ')
-            self.label_17.setStyleSheet(f'color:{COLOR["undo"]}')
+            self.label_17.setStyleSheet(f'color:{COLORS.undo}')
             if self._isSubmitWidget():
                 self.subscribe_widget.prepare_restart()
             self.download()
@@ -1978,13 +1934,13 @@ class TaskWidget(QWidget, Ui_Form):
         self._inf = inf
         status = inf.novel_status
         if status == DownStatus.down_ing:  # '下载中':
-            current_color = COLOR['doing']
+            current_color = COLORS.doing
         elif status == DownStatus.down_ok:  # '已下载':
-            current_color = COLOR['down_ok']
+            current_color = COLORS.down_ok
         elif status == DownStatus.down_before:  # '未处理':
-            current_color = COLOR['undo']
+            current_color = COLORS.undo
         elif status == DownStatus.down_fail:  # '下载失败':
-            current_color = COLOR['down_fail']
+            current_color = COLORS.down_fail
         self.label_17.setStyleSheet(f'color: {current_color}')
         self.label_16.setText(inf.novel_averge_speed)  # 平均速度
         self.label_17.setText(inf.novel_status.value)  # 状态

@@ -8,10 +8,10 @@ from PyQt5.QtWidgets import QDialog, QLabel, QListWidgetItem
 from PyQt5.QtCore import QEvent, Qt, QSize, QUrl, pyqtProperty
 from PyQt5.QtGui import QDesktopServices, QPainter, QPainterPath, QBrush, QColor
 
-from .styles import listwidget_v_scrollbar
 from .selectedui import Ui_Dialog
+
 from .magic import qmixin
-from .common_srcs import CommonPixmaps
+from .common_srcs import StyleSheets
 
 from crawl_novel import InfoObj
 
@@ -38,7 +38,7 @@ class SelectDialog(Ui_Dialog, QDialog):
         self.setAttribute(Qt.WA_TranslucentBackground, True)  # 透明窗口
         self.listWidget.setStyleSheet(listwidget_selected_style)
         self.listWidget.verticalScrollBar().setStyleSheet(
-            listwidget_v_scrollbar)
+            StyleSheets.green_v_scroll_style)
         self.lineEdit.setStyleSheet(
             'border:1px solid black; border-radius:0px')
         self.listWidget.itemClicked.connect(self.select)

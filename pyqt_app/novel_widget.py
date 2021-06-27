@@ -17,12 +17,13 @@ from queue import Queue  # 调度下载
 
 from .novelwidgetui import Ui_Form
 from .popwindow import PopDialog
+
 from .searchwidget import SearchInfoWidget  # 下载列表容器
 from .taskwidget import TaskWidget, PageState  # 下载详情页面
 from .customwidgets import IconWidget, get_subscribeLinkobj, setIconsToolTip, SubscribeWidget, SubState  # 下载详情页面
-from .styles import (listwidget_v_scrollbar, listwidget_style,
-                     submit_listwidget_style, menu_style,
-                     listwidget_img2_style)  # 样式表
+
+from .common_srcs import StyleSheets
+
 from .startUpScrapy import startBothByOrder
 from .magic import lasyproperty, enter_hook
 from .log_supports import getSearchLog, _MessageHandler
@@ -392,14 +393,16 @@ class NovelWidget(QWidget, Ui_Form, HumReadMixin):
         self.fold_pushButton.clicked.connect(self.chooseSavePath)
 
         self.listWidget.verticalScrollBar().setStyleSheet(
-            listwidget_v_scrollbar)
-        self.listWidget.setStyleSheet(listwidget_style)
+            StyleSheets.green_v_scroll_style)
+        self.listWidget.setStyleSheet(StyleSheets.list_page_style)
+
         self.listWidget_2.verticalScrollBar().setStyleSheet(
-            listwidget_v_scrollbar)
-        self.listWidget_2.setStyleSheet(listwidget_img2_style)
+            StyleSheets.green_v_scroll_style)
+        self.listWidget_2.setStyleSheet(StyleSheets.icon_page_style)
+
         self.listWidget_3.verticalScrollBar().setStyleSheet(
-            listwidget_v_scrollbar)
-        self.listWidget_3.setStyleSheet(submit_listwidget_style)
+            StyleSheets.green_v_scroll_style)
+        self.listWidget_3.setStyleSheet(StyleSheets.submit_list_style)
 
         self.search_movie = QMovie(':/ico/refresh.gif')
         self.search_movie.setCacheMode(QMovie.CacheNone)
@@ -422,7 +425,7 @@ class NovelWidget(QWidget, Ui_Form, HumReadMixin):
         self.viewgroup.buttonClicked.connect(self._buttons_policy)
         self.site_button.site_changed.connect(self._updateEnginesSetting)
         self.initFromSettings()
-        self.setStyleSheet(menu_style)
+        self.setStyleSheet(StyleSheets.menu_style)
         self.pushButton_2.click()
         self.stackedWidget.setCurrentIndex(2)  # 首页面
         self.label.setPixmap(

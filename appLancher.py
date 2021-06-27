@@ -5,16 +5,16 @@
 import sys
 
 from pyqt_app import (NovelWidget, FramelessWindow, PopDialog, MenuButton,
-                      menu_style2, frame_less_stylesheet, SelectDialog,
-                      CommonPixmaps, menubar_button_style, ncalls, InfoLabel,
-                      setIconsToolTip, startTransferSever, get_local_ip,
-                      PageState, TransferSeverState, load_plugin, qmixin)
+                      SelectDialog, CommonPixmaps, StyleSheets, ncalls,
+                      InfoLabel, setIconsToolTip, startTransferSever,
+                      get_local_ip, PageState, TransferSeverState, load_plugin,
+                      qmixin)
 
 from multiprocessing import freeze_support, Queue
 
 from PyQt5.QtCore import QRectF, Qt, QPoint, QUrl, QRegExp, pyqtSignal, pyqtSlot, QTranslator
 from PyQt5.QtWidgets import QApplication, QLineEdit, QPushButton, QCompleter, QHBoxLayout, QMessageBox, QMenu, QFrame
-from PyQt5.QtGui import QColor, QDesktopServices, QFontDatabase, QFontMetrics, QIcon, QFont, QPageLayout, QPainter, QPalette, QPixmap
+from PyQt5.QtGui import QColor, QDesktopServices, QFontDatabase, QFontMetrics, QIcon, QFont, QPainter, QPixmap
 
 from crawl_novel import InfoObj
 
@@ -231,14 +231,14 @@ class GuiMain(FramelessWindow):
 
         menu_frame = QFrame()
         menu_frame.setFrameShape(QFrame.NoFrame)
-        menu_frame.setStyleSheet(menubar_button_style)
+        menu_frame.setStyleSheet(StyleSheets.menubar_button_style)
         frame_lay = QHBoxLayout(menu_frame)
         frame_lay.setContentsMargins(0, 0, 0, 0)
         frame_lay.setSpacing(0)
         self.addLeftTitleWidget(menu_frame, autoheight=False)
 
         menu = QMenu()
-        menu.setStyleSheet(menu_style2)
+        menu.setStyleSheet(StyleSheets.menubar_menu_style)
         menu_width = menu.fontMetrics().width('设置所有搜索源头') * 1.5
         menu.setFixedWidth(menu_width)
         a1 = menu.addAction(
@@ -278,7 +278,7 @@ class GuiMain(FramelessWindow):
         self.b1 = button
 
         menu = QMenu()
-        menu.setStyleSheet(menu_style2)
+        menu.setStyleSheet(StyleSheets.menubar_menu_style)
         menu.setFixedWidth(menu_width)
         a1 = menu.addAction(QIcon(CommonPixmaps.menu_search_mode), '搜索模式')
         a1.setShortcut('f2')
@@ -346,15 +346,15 @@ class GuiMain(FramelessWindow):
             font_index).pop()
         self.font_familys.append(self.font_family)
 
-        font_index = QFontDatabase.addApplicationFont('./fonts/FZYanSJW_Xian.ttf')
-        font_name = QFontDatabase.applicationFontFamilies(
-            font_index).pop()
-        self.font_familys.append(font_name)
-        
-        font_index = QFontDatabase.addApplicationFont('./fonts/FZYouSJW_507R.TTF')
+        font_index = QFontDatabase.addApplicationFont(
+            './fonts/FZYanSJW_Xian.ttf')
         font_name = QFontDatabase.applicationFontFamilies(font_index).pop()
         self.font_familys.append(font_name)
 
+        font_index = QFontDatabase.addApplicationFont(
+            './fonts/FZYouSJW_507R.TTF')
+        font_name = QFontDatabase.applicationFontFamilies(font_index).pop()
+        self.font_familys.append(font_name)
 
     def _showpopdialog(self, *, resize: tuple = None, dy: int = None) -> None:
         if resize:

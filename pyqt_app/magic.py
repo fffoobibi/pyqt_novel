@@ -145,8 +145,9 @@ class lasyproperty(object):
     def __init__(self, func):
         # self.func = wraps(self)(func)
         self.func = func
+        self.__doc__ = func.__doc__
 
-    def __get__(self, instance, owner):
+    def __get__(self, instance, owner=None):
         if instance is None:
             return self
         value = self.func(instance)

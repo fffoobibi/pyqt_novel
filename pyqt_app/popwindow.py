@@ -6,7 +6,7 @@ from PyQt5.QtCore import (QSize, QRect, Qt, QEvent, QDir, pyqtSlot,
                           QRegularExpression, QStandardPaths, QUrl, QSemaphore)
 from datetime import datetime, timedelta
 from .customwidgets import _DownRecordWidget, _SearchRecordWidget
-from .styles import listwidget_v_scrollbar, listview_style
+from .common_srcs import StyleSheets
 from .popwindowui import Ui_Dialog
 from .log_supports import getSearchLog
 from .plugins_support import generate_plugin, HumReadMixin
@@ -117,16 +117,16 @@ class PopDialog(Ui_Dialog, QDialog, HumReadMixin):
             QListWidget.ScrollPerPixel)  # 像素滚动
         self.listWidget_2.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.listWidget_2.verticalScrollBar().setSingleStep(5)  # 重要
-        self.listWidget_2.verticalScrollBar().setStyleSheet(listwidget_v_scrollbar)
-        self.listWidget_2.setStyleSheet(listview_style)
+        self.listWidget_2.verticalScrollBar().setStyleSheet(StyleSheets.green_v_scroll_style)
+        self.listWidget_2.setStyleSheet(StyleSheets.fileter_listview_style)
         self.listWidget_2.remove_sig.connect(self.updateLabelMsg)
 
         self.listWidget_3.setVerticalScrollMode(
             QListWidget.ScrollPerPixel)  # 像素滚动
         self.listWidget_3.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         self.listWidget_3.verticalScrollBar().setSingleStep(15)  # 重要
-        self.listWidget_3.verticalScrollBar().setStyleSheet(listwidget_v_scrollbar)
-        self.listWidget_3.setStyleSheet(listview_style)
+        self.listWidget_3.verticalScrollBar().setStyleSheet(StyleSheets.green_v_scroll_style)
+        self.listWidget_3.setStyleSheet(StyleSheets.fileter_listview_style)
         self.listWidget_3.remove_sig.connect(self.updateLabelMsg)
         self.addDownRecordsFromPath(self.novel_widget.getDownRecords())
         self.addSearchRecordsFromSearchlog()

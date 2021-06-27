@@ -92,7 +92,7 @@ class settings_property(object):
     def __set__(self, instance, value):
         instance.settings.setValue(f'Reading/{self.func.__name__}', value)
 
-    def __get__(self, instance, owner):
+    def __get__(self, instance, owner=None):
         if instance is None:
             return self
         result = instance.settings.value(f'Reading/{self.func.__name__}',

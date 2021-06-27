@@ -2,7 +2,7 @@ import asyncio
 
 from .search_infoui import Ui_Form
 from .magic import lasyproperty, qmixin
-from .styles import COLOR
+from .common_srcs import COLORS
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QPoint
 from PyQt5.QtGui import QIcon, QFont, QPainter, QColor
@@ -133,7 +133,7 @@ class SearchInfoWidget(QWidget, Ui_Form):
     @pyqtSlot()
     def _downOkFlag(self):
         self.down_pushButton.setIcon(QIcon(':/ico/checked_1229231_easyicon.net.svg'))
-        self.novel_name.setStyleSheet(f'background: {COLOR["down_ok"]};font-family:微软雅黑; font-size:9pt')
+        self.novel_name.setStyleSheet(f'background: {COLORS.down_ok};font-family:微软雅黑; font-size:9pt')
         self.info.novel_flag = True
 
     @pyqtSlot()
@@ -150,7 +150,7 @@ class SearchInfoWidget(QWidget, Ui_Form):
     @pyqtSlot()
     def _downFailFlag(self):
         self.down_pushButton.setIcon(QIcon(':/ico/cloud_fail_72px_1137820_easyicon.net.png'))
-        self.novel_name.setStyleSheet(f'background: {COLOR["down_fail"]};font-family:微软雅黑; font-size:9pt')
+        self.novel_name.setStyleSheet(f'background: {COLORS.down_fail};font-family:微软雅黑; font-size:9pt')
 
     @pyqtSlot(int)
     def _selectBy(self, checked):

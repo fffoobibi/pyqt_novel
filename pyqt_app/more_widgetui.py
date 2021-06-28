@@ -586,8 +586,8 @@ class Ui_Form(object):
         self.horizontalLayout_4.addWidget(self.label_10)
         self.pushButton_4 = QtWidgets.QPushButton(self.frame_4)
         self.pushButton_4.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.pushButton_4.setStyleSheet("border:1px solid white;\n"
-"border-radius:3px")
+        self.pushButton_4.setStyleSheet("QPushButton{border:1px solid white;border-radius:3px}\n"
+"QPushButton:hover{border:1px solid #CC295F;border-radius:3px}")
         self.pushButton_4.setText("")
         self.pushButton_4.setObjectName("pushButton_4")
         self.horizontalLayout_4.addWidget(self.pushButton_4)
@@ -598,8 +598,8 @@ class Ui_Form(object):
         self.horizontalLayout_4.addWidget(self.label_11)
         self.pushButton_5 = QtWidgets.QPushButton(self.frame_4)
         self.pushButton_5.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.pushButton_5.setStyleSheet("border:1px solid white;\n"
-"border-radius:3px")
+        self.pushButton_5.setStyleSheet("QPushButton{border:1px solid white;border-radius:3px}\n"
+"QPushButton:hover{border:1px solid #CC295F;border-radius:3px}")
         self.pushButton_5.setText("")
         self.pushButton_5.setObjectName("pushButton_5")
         self.horizontalLayout_4.addWidget(self.pushButton_5)
@@ -620,14 +620,16 @@ class Ui_Form(object):
         self.horizontalLayout_11.addItem(spacerItem6)
         self.background_button = QtWidgets.QPushButton(self.frame_11)
         self.background_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.background_button.setStyleSheet("border:1px solid white;\n"
-"border-radius:3px")
+        self.background_button.setStyleSheet("QPushButton{border:1px solid white;border-radius:3px}\n"
+"QPushButton:hover{border:1px solid #CC295F;border-radius:3px}")
         self.background_button.setText("")
         self.background_button.setObjectName("background_button")
         self.horizontalLayout_11.addWidget(self.background_button)
         self.his_button = QtWidgets.QPushButton(self.frame_11)
         self.his_button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.his_button.setStyleSheet("border:none")
+        self.his_button.setStyleSheet("QPushButton{border:none}\n"
+"QPushButton:hover{background-color:  rgba(217, 217, 217, 120)}\n"
+"")
         self.his_button.setText("")
         icon4 = QtGui.QIcon()
         icon4.addPixmap(QtGui.QPixmap(":/ico/省略号.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -759,10 +761,11 @@ class Ui_Form(object):
         self.label_12.setText(_translate("Form", "自定义阅读主题"))
         self.label_10.setText(_translate("Form", "背景色:"))
         self.label_11.setText(_translate("Form", "字体色:"))
-        self.label_13.setText(_translate("Form", "背景图片:"))
+        self.label_13.setText(_translate("Form", "背景图:"))
         self.label_15.setText(_translate("Form", "使用背景图片:"))
         self.use_image_checkbox.setText(_translate("Form", "开"))
         self.label_14.setText(_translate("Form", "翻页方式"))
         self.read_combo.setItemText(0, _translate("Form", "滚动"))
         self.read_combo.setItemText(1, _translate("Form", "水平"))
 from .customwidgets import FontCombobox
+

@@ -1149,8 +1149,8 @@ color:#49423A</string>
                  <cursorShape>PointingHandCursor</cursorShape>
                 </property>
                 <property name="styleSheet">
-                 <string notr="true">border:1px solid white;
-border-radius:3px</string>
+                 <string notr="true">QPushButton{border:1px solid white;border-radius:3px}
+QPushButton:hover{border:1px solid #CC295F;border-radius:3px}</string>
                 </property>
                 <property name="text">
                  <string/>
@@ -1183,8 +1183,8 @@ border-radius:3px</string>
                  <cursorShape>PointingHandCursor</cursorShape>
                 </property>
                 <property name="styleSheet">
-                 <string notr="true">border:1px solid white;
-border-radius:3px</string>
+                 <string notr="true">QPushButton{border:1px solid white;border-radius:3px}
+QPushButton:hover{border:1px solid #CC295F;border-radius:3px}</string>
                 </property>
                 <property name="text">
                  <string/>
@@ -1222,7 +1222,7 @@ border-radius:3px</string>
               <item>
                <widget class="QLabel" name="label_13">
                 <property name="text">
-                 <string>背景图片:</string>
+                 <string>背景图:</string>
                 </property>
                </widget>
               </item>
@@ -1248,8 +1248,8 @@ border-radius:3px</string>
                  <cursorShape>PointingHandCursor</cursorShape>
                 </property>
                 <property name="styleSheet">
-                 <string notr="true">border:1px solid white;
-border-radius:3px</string>
+                 <string notr="true">QPushButton{border:1px solid white;border-radius:3px}
+QPushButton:hover{border:1px solid #CC295F;border-radius:3px}</string>
                 </property>
                 <property name="text">
                  <string/>
@@ -1262,7 +1262,9 @@ border-radius:3px</string>
                  <cursorShape>PointingHandCursor</cursorShape>
                 </property>
                 <property name="styleSheet">
-                 <string notr="true">border:none</string>
+                 <string notr="true">QPushButton{border:none}
+QPushButton:hover{background-color:  rgba(217, 217, 217, 120)}
+</string>
                 </property>
                 <property name="text">
                  <string/>

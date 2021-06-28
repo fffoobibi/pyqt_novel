@@ -301,8 +301,9 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
 
         if self.sender() == self.text_browser._text_color:
             self.pushButton_5.setStyleSheet(
-                'background:%s; border:1px solid white;border-radius:3px' %
-                color_name)
+                '''QPushButton{background:%s; border:1px solid white;border-radius:3px}
+                QPushButton:hover{border:1px solid #CC295F;border-radius:3px}'''
+                % color_name)
             self.cust_f_color = color_name
             if flags is not None:
                 lis[index][1] = color_name
@@ -310,8 +311,9 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
 
         elif self.sender() == self.text_browser._bkg_color:
             self.pushButton_4.setStyleSheet(
-                'background:%s; border:1px solid white;border-radius:3px' %
-                color_name)
+                '''QPushButton{background:%s; border:1px solid white;border-radius:3px}
+                    QPushButton:hover{border:1px solid #CC295F;border-radius:3px}'''
+                % color_name)
             self.cust_b_color = color_name
             if flags is not None:
                 lis[index][-1] = color_name
@@ -360,8 +362,8 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                 flag = 3
             self.background_button.setToolTip(file)
             self.background_button.setStyleSheet(
-                'border:1px solid white;border-radius:3px;background-image:url(%s);background-repeat:repeat-xy;'
-                % file)
+                '''QPushButton{border: 1px solid white;border-radius:3px; border-image: url(%s);}
+                QPushButton:hover{border:1px solid #CC295F}''' % file)
 
             if flag in (1, 2):  # 首次添加
                 image = QImage(file)
@@ -377,10 +379,12 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                 temp[is_in[0]] = [file, ivt_color.name(), color.name()]
             self.cust_images = temp
             self.pushButton_4.setStyleSheet(
-                'border: 1px solid white;border-radius:3px;background-color: %s'
+                '''QPushButton{background:%s; border:1px solid white;border-radius:3px}
+                QPushButton:hover{border:1px solid #CC295F;border-radius:3px}'''
                 % color.name())
             self.pushButton_5.setStyleSheet(
-                'border: 1px solid white;border-radius:3px;background-color: %s'
+                '''QPushButton{background:%s; border:1px solid white;border-radius:3px}
+                QPushButton:hover{border:1px solid #CC295F;border-radius:3px}'''
                 % ivt_color.name())
 
             self.cust_b_color = color.name()
@@ -618,18 +622,21 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         self.horizontalSlider_3.setValue(self.indent)
         self.horizontalSlider_4.setValue(self.margin)
         self.pushButton_4.setStyleSheet(
-            'background:%s; border:1px solid white;border-radius:3px' %
-            self.cust_b_color)
+            '''QPushButton{background:%s; border:1px solid white;border-radius:3px}
+                    QPushButton:hover{border:1px solid #CC295F;border-radius:3px}'''
+            % self.cust_b_color)
         self.pushButton_5.setStyleSheet(
-            'background:%s; border:1px solid white;border-radius:3px' %
-            self.cust_f_color)
+            '''QPushButton{background:%s; border:1px solid white;border-radius:3px}
+                QPushButton:hover{border:1px solid #CC295F;border-radius:3px}'''
+            % self.cust_f_color)
         getattr(self, self.theme).setChecked(True)
         self.lineEdit.setText(str(self.letter_spacing))
         self.font_combo.setCurrent(self.family)
         self.checkBox_2.setChecked(self.use_custom)
         self.background_button.setStyleSheet(
-            '''border: 1px solid white;border-radius:3px; background-image: url(%s);
-                        background-repeat: repeat-xy;''' % self.cust_image)
+            '''QPushButton{border: 1px solid white; border-radius:3px; border-image: url(%s)}
+                QPushButton:hover{border:1px solid #CC295F}''' %
+            self.cust_image)
         if self.cust_image:
             self.background_button.setToolTip(self.cust_image)
         self.read_combo.setCurrentIndex(self.page_turning)
@@ -1608,7 +1615,7 @@ class TaskWidget(QWidget, Ui_Form):
                               self.more_widget.cust_f_color, None)
         else:
             self.more_widget.changeReadTheme(theme)
-
+        # print(latest)
         if page_turning == 1:
             self.auto_split._clearReadLines()
             if use_latested_line:

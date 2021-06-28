@@ -6,6 +6,7 @@ from enum import Enum
 from copy import deepcopy
 from types import MethodType
 from typing import Any, Callable, List, Union
+from collections import deque
 
 from PyQt5.QtWidgets import (QButtonGroup, QDialog, QFrame, QHBoxLayout,
                              QLabel, QListWidget, QListWidgetItem, QPushButton,
@@ -148,6 +149,7 @@ class MoreDelegate(QStyledItemDelegate):
         # document.documentLayout().draw(painter, paint_context)
         # painter.restore()
 
+
 class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
     '''
     parent: main_gui
@@ -183,12 +185,13 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                 convert_cust = [
                     file_name for file_name, text_color, bkg_color in custs
                 ]
-                convert_cust.reverse()
                 self.add_cust(convert_cust, current)
+                self.label.setText(f'最近{self.list_widget.count()}个背景图')
                 self.exec_()
                 self.list_widget.setFocus(True)
 
         dialog = QDialog(self)
+        dialog.label = QLabel()
         dialog.more_widget = self
         dialog.item_click = MethodType(item_click, dialog)
         dialog.add_cust = MethodType(add_cust, dialog)
@@ -217,7 +220,8 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
             list_widget.addItem(item)
 
         v = QVBoxLayout(dialog)
-        v.addWidget(QLabel('最近'))
+        dialog.label.setText(f'最近{list_widget.count()}个背景图')
+        v.addWidget(dialog.label)
         v.addWidget(list_widget)
         frame = QFrame()
         h = QHBoxLayout(frame)
@@ -331,6 +335,10 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         else:
             self.use_custom = False
 
+    @property
+    def max_pics(self):
+        return 25
+
     def setBackgroundPic(self, picture: str = None):  # 设置阅读背景图片
         home_dir = QDir(
             QStandardPaths.writableLocation(QStandardPaths.HomeLocation))
@@ -345,32 +353,31 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                 self, '选择背景图片', desk, filter='图片文件(*.jpg;*.png;*.jpeg)')
         if file:
             self.cust_image = file
-            temp: list = deepcopy(self.cust_images)
+            temp = deepcopy(self.cust_images)
             contains = lambda value, lis: [
                 index for index, e in enumerate(lis) if value in e
             ]
-            is_in = contains(file, temp)
-
-            if not bool(is_in) and len(temp) <= 9:
-                temp.append([file])
-                flag = 1
-            elif not bool(is_in):
-                temp[0][0] = file
-                flag = 2
+            convert = deque(temp, maxlen=self.max_pics)
+            is_in = contains(file, convert)
+            if not is_in:
+                convert.appendleft([file])
+                flag = 1  # 添加
             else:
-                flag = 3
+                flag = 2  # 无添加
+
             self.background_button.setToolTip(file)
             self.background_button.setStyleSheet(
-                '''QPushButton{border-radius:3px; border-image: url(%s);}''' % file)
-
-            if flag in (1, 2):  # 首次添加
+                '''QPushButton{border-radius:3px; border-image: url(%s);}''' %
+                file)
+            temp = list(convert)
+            if flag == 1:  # 添加
                 image = QImage(file)
                 color = image.pixelColor(image.width() / 2,
                                          max(40,
                                              image.height() * .5))  # 取样背景色
                 ivt_color = QColor(255 - color.red(), 255 - color.green(),
                                    255 - color.blue())  # 背景色取反
-                temp[-1] = [file, ivt_color.name(), color.name()]
+                temp[0] = [file, ivt_color.name(), color.name()]
             else:
                 color = QColor(temp[is_in[0]][-1])
                 ivt_color = QColor(temp[is_in[0]][1])
@@ -1214,6 +1221,8 @@ class StyleHandler(object):  # 设置阅读主题
             QPushButton:hover{border:none; color:%s}
             QFrame{background-color: %s; color: %s}''' % (
             text_color, hover_color, bkg_color, text_color)
+        self.task_widget.setStyleSheet(
+            'QToolTip{background-color:white;color:black}')
         self.task_widget.frame_11.setStyleSheet(bar_frame_style)
         v = self.bar_color.get(theme, None)
         v = v if v is not None else (bkg_color, text_color)
@@ -1403,6 +1412,10 @@ class TaskWidget(QWidget, Ui_Form):
         self.skin_button.setHoverLeave(CommonPixmaps.hl_skin_svg, ('white'),
                                        ('#666666'), (30, 30))
 
+        self.other_button.setHoverLeave(CommonPixmaps.hl_other_button,
+                                        ('white', 'white', 'white'),
+                                        ('#666666', '#666666', '#666666'),
+                                        (30, 30))
         self.stackedWidget_2.addWidget(self.chapters_widget)
         self.stackedWidget.setCurrentIndex(0)
         self.exitButtonShowPolicy()
@@ -1613,7 +1626,7 @@ class TaskWidget(QWidget, Ui_Form):
                               self.more_widget.cust_f_color, None)
         else:
             self.more_widget.changeReadTheme(theme)
-    
+
         if page_turning == 1:
             self.auto_split._clearReadLines()
             if use_latested_line:
@@ -1666,6 +1679,7 @@ class TaskWidget(QWidget, Ui_Form):
         self.text_buttons.addButton(self.chapters_button_2)
         self.text_buttons.addButton(self.exit_button)
         self.text_buttons.addButton(self.skin_button)
+        self.text_buttons.addButton(self.other_button)
         self.text_buttons.buttonClicked.connect(self.readButtonsPolicy)
         self.textBrowser.verticalScrollBar().valueChanged.connect(
             self.updatePercent)
@@ -1713,6 +1727,10 @@ class TaskWidget(QWidget, Ui_Form):
             self.chapters_widget.hide()
             self.showMoreWidget(True)
             self.more_widget.pushButton_2.click()
+        elif checked == self.other_button:
+            self.chapters_widget.hide()
+            self.showMoreWidget(True)
+            self.more_widget.pushButton_3.click()
 
     def load_chapter_init(self, chapter_name: str) -> None:
         self.chapter_label.setText(chapter_name)

@@ -131,6 +131,7 @@
     <file>search_1311349_easyicon.net.svg</file>
   </qresource>
   <qresource prefix="hl">
+    <file>切换.svg</file>
     <file>阅读(2).svg</file>
     <file>skin.svg</file>
     <file>270-cancel-circle.svg</file>

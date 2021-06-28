@@ -44,6 +44,7 @@ class CommonPixmaps(object):
     hl_previous_chapter = ':/hl/hangle-left.svg'
     hl_skin_svg = ':/hl/skin.svg'
     hl_subs_read = ':/hl/阅读(2).svg'
+    hl_other_button = ':/hl/切换.svg'
 
     chapter_read_state = ':/ico/verified_1222610_easyicon.net.svg'
     chapter_cached_state = ':/ico/已下载.png'

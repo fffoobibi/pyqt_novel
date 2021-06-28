@@ -1248,6 +1248,20 @@ QProgressBar::chunk {
                   </widget>
                  </item>
                  <item>
+                  <widget class="ColorButton" name="other_button">
+                   <property name="toolTip">
+                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-size:10pt; font-weight:600;&quot;&gt;翻页方式&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="icon">
+                    <iconset>
+                     <normaloff>:/hl/其他.svg</normaloff>:/hl/其他.svg</iconset>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
                   <widget class="ColorButton" name="markup_button">
                    <property name="cursor">
                     <cursorShape>PointingHandCursor</cursorShape>

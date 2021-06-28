@@ -4385,7 +4385,7 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadPropertys):
             setattr(self, key, kwargs[key])
         return self._failtemplate.render(*args, **kwargs)
 
-    def flushLatested(self, p_value: int = None):
+    def flushLatested(self, p_value: int = None) -> LatestRead:
         line = self.firstVisablePara()
         bar = self.verticalScrollBar()
         value = bar.value() if p_value is None else p_value
@@ -4406,6 +4406,7 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadPropertys):
         latested.value = value
         latested.content_index = -1
         latested.content_pos = -1
+        return latested
 
     @pyqtSlot(dict)
     def failUpdateChapter(self, message: dict) -> None:
@@ -4470,7 +4471,11 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadPropertys):
             self.task_widget.load_chapter_init(chapter_name + "(%.2f%%)" %
                                                (latest.float_percent * 100))
 
-        self.flushLatested()
+        latested = self.flushLatested()
+        latested.is_title = True
+        latested.line = chapter_name
+        latested.content_index = 0
+        latested.content_pos = 0
 
         markup = self.task_widget.info.bookmark_exists(self.current_index,
                                                        self.current_chapter)

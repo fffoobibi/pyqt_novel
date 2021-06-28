@@ -647,12 +647,12 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
     @pyqtSlot(int)
     def updatePageTurning(self, index: int) -> None:  # 更改翻页方式
         self.page_turning = index
-        latestd = self.info.getLatestRead()
+        # latestd = self.info.getLatestRead()
         if index == 0:  # 当前处于auto_split
             self.task_widget.read_fromlatest(
                 flag_action=FlagAction.split_to_scroll)
         elif index == 1:  # 当前处于textbrowser
-            self.task_widget.flushLatested()
+            latestd = self.task_widget.flushLatested()
             self.task_widget.read_fromlatest(
                 use_latested_line=True,
                 is_title=latestd.is_title,
@@ -1560,9 +1560,10 @@ class TaskWidget(QWidget, Ui_Form):
                 f'已添加书签: {markup.chapter}({markup.percent * 100:.2f}%)', True,
                 msg_color)
 
-    def flushLatested(self, p_value: int = None):  # 刷新最近阅读信息
+    def flushLatested(self, p_value: int = None) -> LatestRead:  # 刷新最近阅读信息
         if self.more_widget.page_turning == 0:
             self.textBrowser.flushLatested(p_value)
+        return self._inf.getLatestRead()
 
     @pyqtSlot(int)
     def updatePercent(self, value: int) -> None:
@@ -1615,7 +1616,7 @@ class TaskWidget(QWidget, Ui_Form):
                               self.more_widget.cust_f_color, None)
         else:
             self.more_widget.changeReadTheme(theme)
-        # print(latest)
+    
         if page_turning == 1:
             self.auto_split._clearReadLines()
             if use_latested_line:

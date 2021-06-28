@@ -8,7 +8,7 @@ import traceback
 import jinja2
 import asyncio
 
-from enum import IntEnum
+from enum import IntEnum, auto
 from textwrap import fill
 from random import sample
 from copy import deepcopy
@@ -3606,15 +3606,17 @@ class _AutoLine(MySequence):
     def __init__(self,
                  content: str = '',
                  has_indent: bool = False,
-                 is_title: bool = False) -> None:
-        self.line = [content, has_indent, is_title]
+                 is_title: bool = False,
+                 content_index: int = -1,
+                 content_pos: int = -1) -> None:
+        self.line = [content, has_indent, is_title, content_index, content_pos]
 
     def _container_(self):
         return self.line
 
     def copy(self) -> '_AutoLine':
-        content, has_indent, is_title = self
-        return _AutoLine(content, has_indent, is_title)
+        content, has_indent, is_title, c_index, c_pos = self
+        return _AutoLine(content, has_indent, is_title, c_index, c_pos)
 
     @property
     def content(self):
@@ -3627,6 +3629,14 @@ class _AutoLine(MySequence):
     @property
     def is_title(self):
         return self[2]
+
+    @property
+    def content_index(self):
+        return self[3]
+
+    @property
+    def content_pos(self):
+        return self[4]
 
 
 class AutoSplitContentTaskReadWidget(QWidget,
@@ -3815,9 +3825,11 @@ class AutoSplitContentTaskReadWidget(QWidget,
         super().resizeEvent(event)
         self.read_width = self.width() - 10
         self.read_height = self.height()
-        first_line, is_title = self.first_line()
+        first_line, has_indent, is_title, content_index, content_pos = self.first_line(
+        )
         self._clearReadLines()
-        if self.chapter_content:
+        if self.chapter_content and self.sender() is None:
+            # print('resize: ', first_line, is_title, content_index)
             self.computePages(self.chapter_content,
                               self.current_page,
                               by_first_line=first_line,
@@ -3825,7 +3837,7 @@ class AutoSplitContentTaskReadWidget(QWidget,
             msg = self.current_chapter + f'({self.current_page+1}/{self.pageCount()})'
             self.task_widget.load_chapter_init(msg)
             self.update_latest()
-            print('resize')
+            # print('-' * 20)
 
     @pyqtSlot(dict)  # 下载成功
     def updateChapter(self, messages: dict) -> None:
@@ -3836,7 +3848,8 @@ class AutoSplitContentTaskReadWidget(QWidget,
         if self.flag == FlagAction.first_in:  # 初次进入
             self.computePages(content,
                               latest.percent,
-                              by_first_line=self.by_first_line)  # 按percent分页
+                              by_first_line=latest.line,
+                              is_title=latest.is_title)  # 按percent分页
             msg = chapter_name + f'({self.current_page + 1}/{self.pageCount()})'
 
         elif self.flag == FlagAction.next_chapter:  # next
@@ -3866,6 +3879,7 @@ class AutoSplitContentTaskReadWidget(QWidget,
             msg = chapter_name + f'({self.current_page+1}/{self.pageCount()})'
         self.task_widget.load_chapter_init(msg)
         self.content_length = len(''.join(content))
+        # print('request ok--', end='')
         self.update_latest()
 
     def paintEvent(self, event) -> None:
@@ -3924,9 +3938,10 @@ class AutoSplitContentTaskReadWidget(QWidget,
                      is_title: bool = True):  # 计算章节所需页数
 
         latested = self.info.getLatestRead()
-        # print(latested)
         height = self._textHeight()
         title_height = self._titleHeight()
+        self.chapter_content = lines
+
         if is_title is not None:
             self.is_title = is_title
 
@@ -3939,16 +3954,16 @@ class AutoSplitContentTaskReadWidget(QWidget,
 
         elif by_first_line is not None and by_first_line and is_title == False:
             self.by_first_line = by_first_line
-            self.chapter_content = lines
-            i = -1
-            for line in self.chapter_content:
-                i += 1
-                if by_first_line.strip() in line:
-                    pint = i
-                    break
+            if latested.content_index > -1:
+                pint = max(1, latested.content_index)
+                # print('byfirst: ', by_first_line, pint)
             else:
-                pint = 1
-            pint = max(1, pint)
+                for i, line in enumerate(self.chapter_content):
+                    if by_first_line in line:
+                        pint = i
+                        break
+                pint = max(1, pint)
+                # print('sss', i)
             self._addLines(self.chapter_content[:pint])  # 添加处理行
             label_counts = int((self.read_height + height - title_height) /
                                (self.line_height + height))  # title,分页
@@ -3958,16 +3973,17 @@ class AutoSplitContentTaskReadWidget(QWidget,
             label_counts = int(
                 (self.read_height) / (self.line_height + height))  # content 分页
             p2 = self.auto_pages.split_page(label_counts, len(p1))
-            # p2 = self._split_sequence(self.auto_pages[len(p1):], label_counts)
             p2.insert(0, p1)
+
             lp2 = len(p2)
             self.auto_pages = p2
-            copyed_p_lines = deepcopy(self.auto_pages)
-            self._addLines(self.chapter_content[pint:], False)
-            # p = self._split_sequence(self.auto_pages, label_counts)
+            copyed_pages = self.auto_pages.copy()
+            line_counts = copyed_pages[-1][-1].content_index + 1
+            self._addLines(self.chapter_content[pint:], False, start=line_counts)
             p = self.auto_pages.split_page(label_counts)
-            copyed_p_lines.extend(p)
-            self.auto_pages = copyed_p_lines
+            copyed_pages.extend(p)
+            self.auto_pages = copyed_pages
+
             self._page_count = len(self.auto_pages)
             self.current_page = lp2
             self.read_layout.addSpacing(self.line_height)
@@ -3975,7 +3991,7 @@ class AutoSplitContentTaskReadWidget(QWidget,
                 self._setReadLine(line, height)
             self.read_layout.addStretch()
 
-    def first_line(self) -> Tuple[str, bool]:
+    def first_line(self) -> _AutoLine:
         for i in range(self.read_layout.count()):
             item = self.read_layout.itemAt(i)
             if item:
@@ -3983,33 +3999,41 @@ class AutoSplitContentTaskReadWidget(QWidget,
                 if widget:
                     label = widget.label
                     # if label.p_first_flag:
-                    return label.text(), label.p_title
-        return '', False
+                    return label.line
+        return _AutoLine()
 
-        # item = self.read_layout.itemAt(1)
-        # if item:
-        #     return item.widget().label.text()
-        # return ''
+    def current_page_line_counts(self) -> int:  # 当前页面阅读行数
+        count = 0
+        for i in range(self.read_layout.count()):
+            item = self.read_layout.itemAt(i)
+            if item:
+                widget = item.widget()
+                if widget:
+                    count += 1
+        return count
 
-    def update_latest(self, first_line: str = None) -> None:  # 更新最近阅读信息
-        read_info = self.info.getLatestRead()
-        read_info.index = self.current_index
-        read_info.chapter_name = self.current_chapter
-        read_info.percent = self.current_page
-        if first_line is not None:
-            read_info.line = first_line
+    def update_latest(self) -> None:  # 更新最近阅读信息
+        auto_line = self.first_line()
+        # print('in update: ', auto_line.content, auto_line.content_index)
+        latested = self.info.getLatestRead()
+        latested.index = self.current_index
+        latested.chapter_name = self.current_chapter
+        latested.percent = self.current_page
+        latested.line = auto_line.content
+        latested.content_index = auto_line.content_index
+        latested.content_pos = auto_line.content_pos
+
+        if latested.line.strip() == latested.chapter_name:
+            latested.is_title = True
         else:
-            read_info.line, _ = self.first_line()
-        if read_info.line.strip() == read_info.chapter_name:
-            read_info.is_title = True
-        else:
-            read_info.is_title = False
+            latested.is_title = False
         if self.content_length:
             pages = self.auto_pages[:self.current_page]
             page_lines = [lines[0] for page in pages for lines in page]
-            read_info.float_percent = len(
+            latested.float_percent = len(
                 ''.join(page_lines)) / self.content_length
             # read_info.min, read_info.max, read_info.value = text_browser.barRangeandValue()
+        # print('update_latested: ', latested.line, latested.content_index)
 
     def setReadStyle(self, bkg_color=None, text_color=None, bkg_image=None):
         self.bkg_color = QColor(
@@ -4073,7 +4097,7 @@ class AutoSplitContentTaskReadWidget(QWidget,
     def _setReadLine(self, auto_line: _AutoLine,
                      height: int) -> None:  # 添加阅读内容, 并布局排版
 
-        line, p_first_flag, p_title = auto_line
+        line, p_first_flag, p_title, *_ = auto_line
 
         frame = QFrame()
         frame.setFrameShape(QFrame.NoFrame)
@@ -4099,6 +4123,7 @@ class AutoSplitContentTaskReadWidget(QWidget,
 
         label.p_title = p_title
         label.p_first_flag = p_first_flag
+        label.line = auto_line
         if p_title:
             frame_h.addSpacing(10)
         else:
@@ -4116,21 +4141,24 @@ class AutoSplitContentTaskReadWidget(QWidget,
                 child.widget().setParent(None)
             child = layout.takeAt(0)
 
-    def _addLine(self, line: str, fm: QFontMetrics) -> None:
+    def _addLine(self, line: str, fm: QFontMetrics,
+                 content_index: int) -> None:
         lines = self._text_compute(line, fm, self.read_width)
-        i = -1
-        for pline in lines:
-            i += 1
+        content_pos = 0
+        for i, pline in enumerate(lines):
             has_indent = True if i == 0 else False
-            self.auto_pages.append(_AutoLine(pline, has_indent, False))
+            content_pos += len(pline)
+            self.auto_pages.append(
+                _AutoLine(pline, has_indent, False, content_index,
+                          content_pos))
 
-    def _addLines(self, lines: List[str], first_title: bool = True):  # 分行处理
+    def _addLines(self, lines: List[str], first_title: bool = True, start: int = 0):  # 分行处理
         self.auto_pages.clear()
         fm = QFontMetrics(self._read_font)
-        for line in lines:
-            self._addLine(line, fm)
+        for index, line in enumerate(lines):
+            self._addLine(line, fm, index + start)
         if self.auto_pages:
-            self.auto_pages[0][-1] = first_title
+            self.auto_pages[0][2] = first_title
 
     def _text_compute(self, text: str, fm: QFontMetrics,
                       width: int) -> list:  # 计算所需大小
@@ -4375,6 +4403,8 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadPropertys):
         latested.min = bar.minimum()
         latested.max = bar.maximum()
         latested.value = value
+        latested.content_index = -1
+        latested.content_pos = -1
 
     @pyqtSlot(dict)
     def failUpdateChapter(self, message: dict) -> None:

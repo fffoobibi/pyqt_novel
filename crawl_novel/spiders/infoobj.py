@@ -48,8 +48,8 @@ class Markup(object):
     chapter: str = ''
     percent: float = 0
     create_time: str = field(default_factory=lambda: str(datetime.now()))
-    content: str = '' # 当前可见第一行
-    is_title: bool= False # 是否是章节名
+    content: str = ''  # 当前可见第一行
+    is_title: bool = False  # 是否是章节名
 
     def __eq__(self, other) -> bool:
         if isinstance(other, self.__class__):
@@ -85,11 +85,13 @@ class LatestRead(object):
     type: int = -1  # 未定义
     float_percent: float = 0.0  # 滚动阅读: 进度
     line: str = ''  # 当前可见第一行
-    is_title: bool = False # 是否是章节名
+    is_title: bool = False  # 是否是章节名
     page_step: int = -1  # 文档步长
     min: float = 0
     max: float = 0
     value: float = 0
+    content_index: int = -1  #
+    content_pos: int = -1  #
 
     def __eq__(self, other) -> bool:
         if isinstance(other, self.__class__):
@@ -102,8 +104,9 @@ class LatestRead(object):
 
     def copy(self) -> 'LatestRead':
         return LatestRead(self.index, self.chapter_name, self.percent,
-                          self.type, self.float_percent, self.line, self.is_title,
-                          self.page_step, self.min, self.max, self.value)
+                          self.type, self.float_percent, self.line,
+                          self.is_title, self.page_step, self.min, self.max,
+                          self.value, self.content_index, self.content_pos)
 
     def __deepcopy__(self, memo: dict) -> 'LatestRead':
         return self.copy()

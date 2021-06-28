@@ -142,8 +142,8 @@ border:none</string>
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>740</width>
-            <height>566</height>
+            <width>118</width>
+            <height>443</height>
            </rect>
           </property>
           <property name="styleSheet">
@@ -1243,18 +1243,33 @@ QPushButton:hover{border:1px solid #CC295F;border-radius:3px}</string>
                </spacer>
               </item>
               <item>
-               <widget class="QPushButton" name="background_button">
+               <widget class="BorderButton" name="background_button">
                 <property name="cursor">
                  <cursorShape>PointingHandCursor</cursorShape>
                 </property>
                 <property name="styleSheet">
-                 <string notr="true">QPushButton{border:1px solid white;border-radius:3px}
-QPushButton:hover{border:1px solid #CC295F;border-radius:3px}</string>
+                 <string notr="true"/>
                 </property>
                 <property name="text">
                  <string/>
                 </property>
                </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_11">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Fixed</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>5</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
               <item>
                <widget class="QPushButton" name="his_button">
@@ -1522,6 +1537,11 @@ QComboBox QAbstractItemView::item:selected
   <customwidget>
    <class>FontCombobox</class>
    <extends>QComboBox</extends>
+   <header location="global">customwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>BorderButton</class>
+   <extends>QPushButton</extends>
    <header location="global">customwidgets</header>
   </customwidget>
  </customwidgets>

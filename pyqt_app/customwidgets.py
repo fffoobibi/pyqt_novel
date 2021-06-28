@@ -1,4 +1,5 @@
 import math
+from os import terminal_size
 import time
 import httpx
 import pprint
@@ -24,7 +25,7 @@ from scrapy.http import HtmlResponse
 from jinja2 import FileSystemLoader, Environment
 
 from PyQt5.QtWidgets import (
-    QColorDialog, QTextBrowser, QWidget, QApplication, QPushButton, QLabel,
+    QColorDialog, QStyle, QTextBrowser, QWidget, QApplication, QPushButton, QLabel,
     QMenu, QListWidget, QListWidgetItem, QFrame, QGraphicsOpacityEffect,
     QListView, QAbstractItemView, QLineEdit, QVBoxLayout, QCheckBox, QToolTip,
     QComboBox, QHBoxLayout, QPlainTextEdit, QShortcut, QCompleter, QAction,
@@ -4783,7 +4784,29 @@ class ColorButton(QPushButton):
         svg_render.render(painter)
         return pixmap
 
+class BorderButton(QPushButton):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._enter = False
 
+    def enterEvent(self, event) -> None:
+        self._enter = True
+        return super().enterEvent(event)
+
+    def leaveEvent(self, event) -> None:
+        self._enter = False
+        return super().leaveEvent(event)
+
+    def paintEvent(self, event) -> None:
+        super().paintEvent(event)
+        painter = QPainter(self)
+        painter.setRenderHints(QPainter.Antialiasing, True)
+        if self._enter:
+            painter.setPen(QPen(QColor('#CC295F'), 2))
+        else:
+            painter.setPen(QPen(Qt.white, 2))
+        painter.drawRoundedRect(self.rect().adjusted(1,1,-1,-1), 3, 3)
+   
 class FInValidator(QIntValidator):
     def fixup(self, input: str) -> str:  # return时执行
         new_value = input.replace('0', '')

@@ -148,7 +148,6 @@ class MoreDelegate(QStyledItemDelegate):
         # document.documentLayout().draw(painter, paint_context)
         # painter.restore()
 
-
 class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
     '''
     parent: main_gui
@@ -362,8 +361,7 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
                 flag = 3
             self.background_button.setToolTip(file)
             self.background_button.setStyleSheet(
-                '''QPushButton{border: 1px solid white;border-radius:3px; border-image: url(%s);}
-                QPushButton:hover{border:1px solid #CC295F}''' % file)
+                '''QPushButton{border-radius:3px; border-image: url(%s);}''' % file)
 
             if flag in (1, 2):  # 首次添加
                 image = QImage(file)
@@ -634,8 +632,7 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         self.font_combo.setCurrent(self.family)
         self.checkBox_2.setChecked(self.use_custom)
         self.background_button.setStyleSheet(
-            '''QPushButton{border: 1px solid white; border-radius:3px; border-image: url(%s)}
-                QPushButton:hover{border:1px solid #CC295F}''' %
+            '''QPushButton{border-radius:3px; border-image: url(%s)}''' %
             self.cust_image)
         if self.cust_image:
             self.background_button.setToolTip(self.cust_image)

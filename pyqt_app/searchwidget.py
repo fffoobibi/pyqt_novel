@@ -3,7 +3,7 @@ import asyncio
 from .search_infoui import Ui_Form
 from .magic import lasyproperty, qmixin
 from .common_srcs import COLORS
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QLabel, QWidget
 from PyQt5.QtCore import pyqtSlot, pyqtSignal, Qt, QPoint
 from PyQt5.QtGui import QIcon, QFont, QPainter, QColor
 from crawl_novel import InfoObj, InfTools, FileDownloader, DownStatus, ChapterDownloader
@@ -49,6 +49,7 @@ class SearchInfoWidget(QWidget, Ui_Form):
         name = InfTools.addColor('red', self.info.novel_app.search_content, self.info)
         self.novel_name.setText(f'{index}. {name}')
         self.novel_size.setText(info.novel_size)
+        self.novel_size.setAlignment(Qt.AlignCenter)
         self.novel_site.setText(info.novel_site)
         if info.novel_download:
             self._downOkFlag()

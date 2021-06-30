@@ -88,8 +88,7 @@ class GuiMain(FramelessWindow):
     def titleBarInit(self) -> None:
         fm = QFontMetrics(QFont('微软雅黑', 9))
         bar_height = fm.height() * 1.5 + 6
-        print('bar_height: ', bar_height)
-        self.setIconSize(self.ico_size)  # 标题栏尺寸
+        self.setIconSize(bar_height - 6)  # 标题栏尺寸
         self.setTitleBarColor(self.bar_color)  # 标题栏颜色
         self.setTitleBarHeight(bar_height)  # 标题栏高度
         self.setWindowIcon(QIcon(self.ico))  # 标题ico

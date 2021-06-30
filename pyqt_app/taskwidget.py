@@ -3,7 +3,6 @@ import platform
 import os
 
 from enum import Enum
-from math import cos, pi
 from copy import deepcopy
 from types import MethodType
 from typing import Any, Callable, List, Union
@@ -112,100 +111,100 @@ class settings_property(object):
         return self
 
 
-class SmoothListWidget(QListWidget):
-    """ 一个可以平滑滚动的ListWidget """
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fps = 60
-        self.duration = 400
-        self.stepsTotal = 0
-        self.stepRatio = 1.5
-        self.acceleration = 1
-        self.lastWheelEvent = None
-        self.scrollStamps = deque()
-        self.stepsLeftQueue = deque()
-        self.smoothMoveTimer = QTimer(self)
-        self.smoothMode = SmoothMode(SmoothMode.COSINE)
-        self.smoothMoveTimer.timeout.connect(self.smoothMove)
-        self.setVerticalScrollMode(self.ScrollPerPixel)
+# class SmoothListWidget(QListWidget):
+#     """ 一个可以平滑滚动的ListWidget """
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         self.fps = 60
+#         self.duration = 400
+#         self.stepsTotal = 0
+#         self.stepRatio = 1.5
+#         self.acceleration = 1
+#         self.lastWheelEvent = None
+#         self.scrollStamps = deque()
+#         self.stepsLeftQueue = deque()
+#         self.smoothMoveTimer = QTimer(self)
+#         self.smoothMode = SmoothMode(SmoothMode.COSINE)
+#         self.smoothMoveTimer.timeout.connect(self.smoothMove)
+#         self.setVerticalScrollMode(self.ScrollPerPixel)
 
-    def wheelEvent(self, e: QWheelEvent):
-        """ 实现平滑滚动效果 """
-        if self.smoothMode == SmoothMode.NO_SMOOTH:
-            super().wheelEvent(e)
-            return
-        # 将当前时间点插入队尾
-        now = QDateTime.currentDateTime().toMSecsSinceEpoch()
-        self.scrollStamps.append(now)
-        while now - self.scrollStamps[0] > 500:
-            self.scrollStamps.popleft()
+#     def wheelEvent(self, e: QWheelEvent):
+#         """ 实现平滑滚动效果 """
+#         if self.smoothMode == SmoothMode.NO_SMOOTH:
+#             super().wheelEvent(e)
+#             return
+#         # 将当前时间点插入队尾
+#         now = QDateTime.currentDateTime().toMSecsSinceEpoch()
+#         self.scrollStamps.append(now)
+#         while now - self.scrollStamps[0] > 500:
+#             self.scrollStamps.popleft()
 
-        # 根据未处理完的事件调整移动速率增益
-        accerationRatio = min(len(self.scrollStamps) / 15, 1)
-        if not self.lastWheelEvent:
-            self.lastWheelEvent = QWheelEvent(e)
-        else:
-            self.lastWheelEvent = e
-        # 计算步数
-        self.stepsTotal = self.fps * self.duration / 1000
-        # 计算每一个事件对应的移动距离
-        delta = e.angleDelta().y() * self.stepRatio
-        if self.acceleration > 0:
-            delta += delta * self.acceleration * accerationRatio
-        # 将移动距离和步数组成列表，插入队列等待处理
-        self.stepsLeftQueue.append([delta, self.stepsTotal])
-        # 定时器的溢出时间t=1000ms/帧数
-        self.smoothMoveTimer.start(1000 / self.fps)
+#         # 根据未处理完的事件调整移动速率增益
+#         accerationRatio = min(len(self.scrollStamps) / 15, 1)
+#         if not self.lastWheelEvent:
+#             self.lastWheelEvent = QWheelEvent(e)
+#         else:
+#             self.lastWheelEvent = e
+#         # 计算步数
+#         self.stepsTotal = self.fps * self.duration / 1000
+#         # 计算每一个事件对应的移动距离
+#         delta = e.angleDelta().y() * self.stepRatio
+#         if self.acceleration > 0:
+#             delta += delta * self.acceleration * accerationRatio
+#         # 将移动距离和步数组成列表，插入队列等待处理
+#         self.stepsLeftQueue.append([delta, self.stepsTotal])
+#         # 定时器的溢出时间t=1000ms/帧数
+#         self.smoothMoveTimer.start(1000 / self.fps)
 
-    def smoothMove(self):
-        """ 计时器溢出时进行平滑滚动 """
-        totalDelta = 0
-        # 计算所有未处理完事件的滚动距离，定时器每溢出一次就将步数-1
-        for i in self.stepsLeftQueue:
-            totalDelta += self.subDelta(i[0], i[1])
-            i[1] -= 1
-        # 如果事件已处理完，就将其移出队列
-        while self.stepsLeftQueue and self.stepsLeftQueue[0][1] == 0:
-            self.stepsLeftQueue.popleft()
-        # 构造滚轮事件
-        e = QWheelEvent(self.lastWheelEvent.pos(),
-                        self.lastWheelEvent.globalPos(),
-                        self.lastWheelEvent.pos(),
-                        self.lastWheelEvent.globalPos(),
-                        round(totalDelta), Qt.Vertical,
-                        self.lastWheelEvent.buttons(), Qt.NoModifier)
-        # 将构造出来的滚轮事件发送给app处理
-        QApplication.sendEvent(self.verticalScrollBar(), e)
-        # 如果队列已空，停止滚动
-        if not self.stepsLeftQueue:
-            self.smoothMoveTimer.stop()
+#     def smoothMove(self):
+#         """ 计时器溢出时进行平滑滚动 """
+#         totalDelta = 0
+#         # 计算所有未处理完事件的滚动距离，定时器每溢出一次就将步数-1
+#         for i in self.stepsLeftQueue:
+#             totalDelta += self.subDelta(i[0], i[1])
+#             i[1] -= 1
+#         # 如果事件已处理完，就将其移出队列
+#         while self.stepsLeftQueue and self.stepsLeftQueue[0][1] == 0:
+#             self.stepsLeftQueue.popleft()
+#         # 构造滚轮事件
+#         e = QWheelEvent(self.lastWheelEvent.pos(),
+#                         self.lastWheelEvent.globalPos(),
+#                         self.lastWheelEvent.pos(),
+#                         self.lastWheelEvent.globalPos(),
+#                         round(totalDelta), Qt.Vertical,
+#                         self.lastWheelEvent.buttons(), Qt.NoModifier)
+#         # 将构造出来的滚轮事件发送给app处理
+#         QApplication.sendEvent(self.verticalScrollBar(), e)
+#         # 如果队列已空，停止滚动
+#         if not self.stepsLeftQueue:
+#             self.smoothMoveTimer.stop()
 
-    def subDelta(self, delta, stepsLeft):
-        """ 计算每一步的插值 """
-        m = self.stepsTotal / 2
-        x = abs(self.stepsTotal - stepsLeft - m)
-        # 根据滚动模式计算插值
-        res = 0
-        if self.smoothMode == SmoothMode.NO_SMOOTH:
-            res = 0
-        elif self.smoothMode == SmoothMode.CONSTANT:
-            res = delta / self.stepsTotal
-        elif self.smoothMode == SmoothMode.LINEAR:
-            res = 2 * delta / self.stepsTotal * (m - x) / m
-        elif self.smoothMode == SmoothMode.QUADRATI:
-            res = 3 / 4 / m * (1 - x * x / m / m) * delta
-        elif self.smoothMode == SmoothMode.COSINE:
-            res = (cos(x * pi / m) + 1) / (2 * m) * delta
-        return res
+#     def subDelta(self, delta, stepsLeft):
+#         """ 计算每一步的插值 """
+#         m = self.stepsTotal / 2
+#         x = abs(self.stepsTotal - stepsLeft - m)
+#         # 根据滚动模式计算插值
+#         res = 0
+#         if self.smoothMode == SmoothMode.NO_SMOOTH:
+#             res = 0
+#         elif self.smoothMode == SmoothMode.CONSTANT:
+#             res = delta / self.stepsTotal
+#         elif self.smoothMode == SmoothMode.LINEAR:
+#             res = 2 * delta / self.stepsTotal * (m - x) / m
+#         elif self.smoothMode == SmoothMode.QUADRATI:
+#             res = 3 / 4 / m * (1 - x * x / m / m) * delta
+#         elif self.smoothMode == SmoothMode.COSINE:
+#             res = (cos(x * pi / m) + 1) / (2 * m) * delta
+#         return res
 
 
-class SmoothMode(Enum):
-    """ 滚动模式 """
-    NO_SMOOTH = 0
-    CONSTANT = 1
-    LINEAR = 2
-    QUADRATI = 3
-    COSINE = 4
+# class SmoothMode(Enum):
+#     """ 滚动模式 """
+#     NO_SMOOTH = 0
+#     CONSTANT = 1
+#     LINEAR = 2
+#     QUADRATI = 3
+#     COSINE = 4
 
 
 class MoreDelegate(QStyledItemDelegate):
@@ -507,6 +506,10 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         elif flag == 1:
             return self.auto_split
 
+    @property
+    def basic_fm(self) -> QFontMetrics:
+        return self.task_widget.basic_fm
+
     def __init__(self, *args, **kwargs):
         self.task_widget: TaskWidget = kwargs.pop('task_widget', None)
         self.text_browser: TaskReadBrowser = kwargs.pop('text_browser', None)
@@ -640,10 +643,11 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         self.frame_10.hide()  # brightness
 
         # 设置hover_button
-        standard = self.pushButton.fontMetrics().height() + 5
+        standard = self.basic_fm.height() + 5
         self.pushButton_6.setNormal(CommonPixmaps.normal_button)
         self.pushButton_6.setHover(CommonPixmaps.hover_button)
         self.pushButton_6.setNHSize(standard, standard)
+        # self.pushButton_6.setFixedSize(standard, standard)
 
     def _useCustPolicy(self, state: int):
         if state == Qt.Checked:
@@ -977,7 +981,8 @@ class ChapterItemDelegate(QStyledItemDelegate):
               index: QModelIndex) -> None:
         rect = option.rect  # 目标矩形
         w, h = rect.width(), rect.height()
-        pix_size = 20
+        sized = self.sizeHint(option, index)
+        pix_size = sized.height() * .6
         spacing = 10
         margin = 10
         text_rect = rect.adjusted(margin, 0, -(pix_size + margin + spacing), 0)
@@ -1101,7 +1106,8 @@ class ChapterWidget(QWidget, ChapterUi):  # 阅读详情页面
         item.setText(chapter_name)
         item.setData(Qt.UserRole, count)  # index
         item.setData(Qt.UserRole + 1, chapter_name)  # chapter
-        item.setSizeHint(QSize(10, 45))
+        height =self.listWidget.fontMetrics().height() * 1.5
+        item.setSizeHint(QSize(10, height))
         self.listWidget.addItem(item)
 
     def set3page(self) -> None:
@@ -1125,7 +1131,8 @@ class ChapterWidget(QWidget, ChapterUi):  # 阅读详情页面
 
         item.setData(Qt.UserRole, book_mark)
         item.setData(Qt.UserRole + 1, msg)
-        item.setSizeHint(QSize(10, 45))
+        height =self.listWidget_2.fontMetrics().height() * 1.5
+        item.setSizeHint(QSize(10, height))
         item.setText(text)
         self.listWidget_2.addItem(item)
 
@@ -1388,6 +1395,10 @@ class TaskWidget(QWidget, Ui_Form):
     remove_signal = pyqtSignal()
     down_signal = pyqtSignal(InfoObj)
 
+    @lasyproperty
+    def basic_fm(self):
+        return QFontMetrics(QFont('微软雅黑', 10))
+
     def __init__(self, inf: InfoObj):
         super().__init__()
         self.setupUi(self)
@@ -1523,10 +1534,11 @@ class TaskWidget(QWidget, Ui_Form):
                                         ('white', ) * 3, ('#666666', ) * 3, h)
 
         # 设置hover_button
-        standard = self.info_title.fontMetrics().height() + 2
+        standard = self.info_title.fontMetrics().height()
         self.pushButton.setNormal(CommonPixmaps.normal_button)
         self.pushButton.setHover(CommonPixmaps.hover_button)
         self.pushButton.setNHSize(standard, standard)
+        # self.pushButton.setFixedSize(standard, standard)
 
         self.stackedWidget_2.addWidget(self.chapters_widget)
         self.stackedWidget.setCurrentIndex(0)

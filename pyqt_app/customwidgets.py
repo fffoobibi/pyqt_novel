@@ -1646,16 +1646,17 @@ class SubscribeWidget(QWidget):
         scaled_y = self.IMG_DFT_SIZE[1] * self.scaled
         fix_w = scaled_x + self.margins * 2
         fix_h = scaled_y + self.margins * 2 + self.spacing + self.text_height
-        y = (scaled_y / 4 - 25) / 2
+        # y = (scaled_y / 4 - 25) / 2
         self.setCursor(Qt.PointingHandCursor)
         self.setSubscribeState(True)
         self.setFixedSize(fix_w, fix_h)
+        h = QFontMetrics(self.text_font).height()
         self.read_button = ColorButton(self, clicked=self._read)
         self.read_button.setHoverLeave(CommonPixmaps.hl_subs_read,
                                        ('#2E5AA6', '#2E5AA6'),
-                                       ('#4585F5', '#4585F5'), 25)
+                                       ('#4585F5', '#4585F5'), h)
         self.read_button.setStyleSheet('border: none')
-        self.read_button.setFixedSize(25, 25)
+        self.read_button.setFixedSize(h, h)
         self.read_button.hide()
         self.addInfo(info)
         self.setContextMenuPolicy(Qt.CustomContextMenu)
@@ -1670,11 +1671,11 @@ class SubscribeWidget(QWidget):
 
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
-        y = self.height() - self.text_height - self.margins
+        y = self.height() - self.text_height - self.margins# 
         _h = self.text_height
         scaled_x = self.IMG_DFT_SIZE[0] * self.scaled
-        y = y + (_h - 25) / 2
-        self.read_button.move(self.margins + scaled_x - 27, y)
+        y = y + (_h - self.read_button.height()) / 2
+        self.read_button.move(self.margins + scaled_x - self.read_button.width() - 2, y)
 
     def _menuPolicy(self) -> None:
         if self.info:
@@ -4433,7 +4434,6 @@ class TaskReadBrowser(QTextBrowser, BaseTaskReadPropertys):
             self.current_mark = None
             self.task_widget.mark_button.hide()
         self.task_widget.updateRequestState()
-        value = self.verticalScrollBar().value()
         self.verticalScrollBar().blockSignals(False)
 
     def total_length(self) -> int:
@@ -4647,11 +4647,12 @@ class ReadBar(TitleBar):
         self.addLeftTitleWidget(frame, 100)
 
         button = ColorButton()
+        h = self.label.fontMetrics().height()
         button.setStyleSheet("ColorButton{border:none;background:transparent}")
         button.setHoverLeave(CommonPixmaps.hl_leftarrow_svg, "white",
-                             "#999999")
+                             "#999999", h)
         button.setToolTip("<b>退出阅读</b>")
-        button.setFixedSize(32, 32)
+
         self.exit_button = button
         self.addLeftTitleWidget(button)
 
@@ -4726,11 +4727,8 @@ class HoverButton(QPushButton):
         self.__hover_icon = None
 
     def setNHSize(self, w, h):
-        # if self.__normal_icon:
-        #     self.__normal_icon.setIconSize(QSize(w, h))
-        # if self.__hover_icon:
-        #     self.__hover_icon.setIconSize(QSize(w, h))
         self.setIconSize(QSize(w, h))
+        self.setFixedSize(QSize(w, h))
 
     def setNormal(self, path: str) -> None:
         self.__normal_icon = QIcon(path)
@@ -4771,6 +4769,7 @@ class ColorButton(QPushButton):
         self.leave = self._get_by_color(leave_fill, sized)
         self.setIconSize(sized)
         self.setIcon(QIcon(self.leave))
+        self.setFixedSize(sized)
 
     def enterEvent(self, a0) -> None:
         self.setIcon(QIcon(self.hover))

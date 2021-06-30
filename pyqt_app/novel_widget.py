@@ -861,8 +861,9 @@ class NovelWidget(QWidget, Ui_Form, HumReadMixin):
         info.novel_index = index + 1  # 重要
 
         widget1 = SearchInfoWidget(info)
+        item_height = widget1.fontMetrics().height() * 2.5
         widget1.introutced_signal.connect(self.gotoIntroutced)
-        self.listWidget.addItemWidget(QSize(10, 45), widget1)
+        self.listWidget.addItemWidget(QSize(10, item_height), widget1)
 
         widget2 = IconWidget(info, self.listWidget_2, self.image_q)
         if info._is_file == False and info.novel_chapter_urls:

@@ -28,9 +28,9 @@ class GuiMain(FramelessWindow):
 
     ico = CommonPixmaps.app_ico
 
-    ico_size = 20
+    # ico_size = 20
 
-    bar_height = 38
+    # bar_height = 38
 
     restart_code = 1000
 
@@ -87,13 +87,12 @@ class GuiMain(FramelessWindow):
 
     def titleBarInit(self) -> None:
         fm = QFontMetrics(QFont('微软雅黑', 9))
-        bar_height = fm.height() * 1.5 + 6
-        self.setIconSize(bar_height - 6)  # 标题栏尺寸
+        self.bar_height = fm.height() * 1.5 + 6
+        self.setIconSize(self.bar_height - 6)  # 标题栏尺寸
         self.setTitleBarColor(self.bar_color)  # 标题栏颜色
-        self.setTitleBarHeight(bar_height)  # 标题栏高度
+        self.setTitleBarHeight(self.bar_height)  # 标题栏高度
         self.setWindowIcon(QIcon(self.ico))  # 标题ico
         self.setWindowTitle(self.title)  # 设置标题
-        # self.setStyleSheet(frame_less_stylesheet)  # 设置样式
 
     def setCommand(self) -> None:
         frame = QFrame()

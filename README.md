@@ -1,7 +1,7 @@
 # pyqt_novel
 
 #### 介绍
-pyqt编写的集阅读,搜索,下载的小说软件
+pyqt5编写的集阅读,搜索,下载的小说软件
 
 #### 软件说明
 
@@ -10,7 +10,8 @@ pyqt编写的集阅读,搜索,下载的小说软件
 3. 支持wifi传输功能
 
 #### 软件架构
-    依赖的库: PyQt5, scrapy, httpx, requests, qrcode, multiprocessing, asyncio, jinjia2
+    依赖的库: PyQt5, scrapy, httpx, requests, qrcode, multiprocessing, asyncio, jinja2
+    运行环境: python 3.7
 
 #### 使用说明
 

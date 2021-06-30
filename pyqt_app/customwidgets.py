@@ -1,5 +1,4 @@
 import math
-from os import terminal_size
 import time
 import httpx
 import pprint
@@ -9,7 +8,7 @@ import traceback
 import jinja2
 import asyncio
 
-from enum import IntEnum, auto
+from enum import IntEnum
 from textwrap import fill
 from random import sample
 from copy import deepcopy

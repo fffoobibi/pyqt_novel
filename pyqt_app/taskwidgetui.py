@@ -33,7 +33,7 @@ class Ui_Form(object):
         self.horizontalLayout_4.setContentsMargins(5, 0, 0, 0)
         self.horizontalLayout_4.setSpacing(2)
         self.horizontalLayout_4.setObjectName("horizontalLayout_4")
-        self.pushButton = QtWidgets.QPushButton(self.frame_6)
+        self.pushButton = HoverButton(self.frame_6)
         self.pushButton.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.pushButton.setStyleSheet("QPushButton{image:url(:/ico/close_512px_1175341_easyicon.net.png);border:none;width:23px;height:23px}\n"
 "QPushButton:hover{image: url(:/ico/close_128px_1175741_easyicon.net.ico);width:23px;height:23px}\n"
@@ -580,7 +580,7 @@ class Ui_Form(object):
         self.horizontalLayout.addWidget(self.stackedWidget)
 
         self.retranslateUi(Form)
-        self.stackedWidget.setCurrentIndex(1)
+        self.stackedWidget.setCurrentIndex(0)
         self.stackedWidget_2.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Form)
 
@@ -630,4 +630,4 @@ class Ui_Form(object):
         self.skin_button.setToolTip(_translate("Form", "<html><head/><body><p><span style=\" font-size:10pt; font-weight:600;\">阅读主题</span></p></body></html>"))
         self.chapters_button_2.setToolTip(_translate("Form", "<html><head/><body><p><span style=\" font-size:10pt; font-weight:600;\">信息</span></p></body></html>"))
         self.more_button.setToolTip(_translate("Form", "<html><head/><body><p><span style=\" font-size:10pt; font-weight:600;\">设置</span></p></body></html>"))
-from .customwidgets import AutoSplitContentTaskReadWidget, ColorButton, GifButton, ReadBar, TaskInfoLabel, TaskReadBrowser, TaskWidgetSubmitLabel
+from .customwidgets import AutoSplitContentTaskReadWidget, ColorButton, GifButton, HoverButton, ReadBar, TaskInfoLabel, TaskReadBrowser, TaskWidgetSubmitLabel

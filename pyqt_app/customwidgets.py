@@ -482,62 +482,6 @@ class TaskInfoLabel(QLabel):
                     self.total_content))
 
 
-class GifButton(QPushButton):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.movie = None
-
-    def setGif(self, file_name: str) -> None:
-        self.movie = QMovie(file_name)
-        self.movie.setSpeed(100)
-        # self.movie.setCacheMode() # 设置帧缓存模式
-        self.movie.frameChanged.connect(self._update)
-        self.movie.start()
-
-    def setIcon(self, icon: QIcon) -> None:
-        if self.movie:
-            self.movie.stop()
-        super().setIcon(icon)
-
-    def stopGif(self) -> None:
-        if self.movie:
-            self.movie.stop()
-
-    def reStartGif(self) -> None:
-        if self.movie:
-            self.movie.start()
-
-    def _update(self, index: int) -> None:
-        pixmap = self.movie.currentPixmap()
-        super().setIcon(QIcon(pixmap))
-
-    def closeEvent(self, event):
-        if self.movie:
-            self.movie.stop()
-        super().closeEvent(event)
-
-
-class HoverButton(QPushButton):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.__normal_icon = None
-        self.__hover_icon = None
-
-    def setNormal(self, path: str) -> None:
-        self.__normal_icon = QIcon(path)
-
-    def setHover(self, path: str) -> None:
-        self.__hover_icon = QIcon(path)
-
-    def enterEvent(self, event):
-        super().enterEvent(event)
-        self.setIcon(self.__hover_icon)
-
-    def leaveEvent(self, event):
-        super().leaveEvent(event)
-        self.setIcon(self.__normal_icon)
-
-
 class _SubscribeLinkThread(QThread):
     def __init__(self, loop):
         super().__init__()
@@ -3052,6 +2996,7 @@ class MenuButton(QPushButton):
         super().__init__(*args, **kwargs)
         self.check_tip = None
         self.uncheck_tip = None
+        self.icon_scaled = icon_scaled
         self.buttonSize = button_size
         icon = QIcon()
         icon.addFile(check_icon, state=QIcon.On)
@@ -3072,6 +3017,8 @@ class MenuButton(QPushButton):
     @buttonSize.setter
     def buttonSize(self, value: int) -> None:
         self.setFixedSize(QSize(value, value))
+        self.setIconSize(
+            QSize(value * self.icon_scaled[0], value * self.icon_scaled[1]))
 
     def setToolTips(self, check_tip: str, uncheck_tip: str) -> None:
         self.check_tip = check_tip
@@ -4737,6 +4684,67 @@ class ReadBar(TitleBar):
     def book_name(self, value: str) -> None:
         self.label.setText(value)
 
+class GifButton(QPushButton):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.movie = None
+
+    def setGif(self, file_name: str) -> None:
+        self.movie = QMovie(file_name)
+        self.movie.setSpeed(100)
+        # self.movie.setCacheMode() # 设置帧缓存模式
+        self.movie.frameChanged.connect(self._update)
+        self.movie.start()
+
+    def setIcon(self, icon: QIcon) -> None:
+        if self.movie:
+            self.movie.stop()
+        super().setIcon(icon)
+
+    def stopGif(self) -> None:
+        if self.movie:
+            self.movie.stop()
+
+    def reStartGif(self) -> None:
+        if self.movie:
+            self.movie.start()
+
+    def _update(self, index: int) -> None:
+        pixmap = self.movie.currentPixmap()
+        super().setIcon(QIcon(pixmap))
+
+    def closeEvent(self, event):
+        if self.movie:
+            self.movie.stop()
+        super().closeEvent(event)
+
+
+class HoverButton(QPushButton):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__normal_icon = None
+        self.__hover_icon = None
+
+    def setNHSize(self, w, h):
+        # if self.__normal_icon:
+        #     self.__normal_icon.setIconSize(QSize(w, h))
+        # if self.__hover_icon:
+        #     self.__hover_icon.setIconSize(QSize(w, h))
+        self.setIconSize(QSize(w, h))
+
+    def setNormal(self, path: str) -> None:
+        self.__normal_icon = QIcon(path)
+
+    def setHover(self, path: str) -> None:
+        self.__hover_icon = QIcon(path)
+
+    def enterEvent(self, event):
+        super().enterEvent(event)
+        self.setIcon(self.__hover_icon)
+
+    def leaveEvent(self, event):
+        super().leaveEvent(event)
+        self.setIcon(self.__normal_icon)
 
 class ColorButton(QPushButton):
     def __init__(self, *args, **kwargs) -> None:
@@ -4750,10 +4758,10 @@ class ColorButton(QPushButton):
         source: str,
         hover_fill: tuple,
         leave_fill: tuple,
-        size: Union[int, tuple, QSize] = 32,
+        size: Union[int, tuple, QSize, float] = 32,
     ) -> None:
         self._setSource(source)
-        if isinstance(size, int):
+        if isinstance(size, (int, float)):
             sized = QSize(size, size)
         elif isinstance(size, tuple):
             sized = QSize(*size)

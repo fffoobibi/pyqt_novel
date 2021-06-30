@@ -31,7 +31,7 @@ class Ui_Form(object):
         self.horizontalLayout = QtWidgets.QHBoxLayout(self.frame)
         self.horizontalLayout.setContentsMargins(-1, 0, -1, 0)
         self.horizontalLayout.setObjectName("horizontalLayout")
-        self.pushButton_6 = QtWidgets.QPushButton(self.frame)
+        self.pushButton_6 = HoverButton(self.frame)
         self.pushButton_6.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
         self.pushButton_6.setStyleSheet("QPushButton{image:url(:/ico/close_512px_1175341_easyicon.net.png);border:none;width:23px;height:23px}\n"
 "QPushButton:hover{image: url(:/ico/close_128px_1175741_easyicon.net.ico);width:23px;height:23px}\n"
@@ -75,7 +75,7 @@ class Ui_Form(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 118, 443))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 108, 443))
         self.scrollAreaWidgetContents.setStyleSheet("QSlider::groove:horizontal {\n"
 "border: 1px solid #4A708B;\n"
 "background: #C0C0C0;\n"
@@ -768,5 +768,4 @@ class Ui_Form(object):
         self.label_14.setText(_translate("Form", "翻页方式"))
         self.read_combo.setItemText(0, _translate("Form", "滚动"))
         self.read_combo.setItemText(1, _translate("Form", "水平"))
-from .customwidgets import BorderButton, FontCombobox
-
+from .customwidgets import BorderButton, FontCombobox, HoverButton

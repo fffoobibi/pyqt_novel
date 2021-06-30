@@ -14,8 +14,9 @@ from PyQt5.QtWidgets import (QButtonGroup, QDialog, QFrame, QHBoxLayout,
                              QStyle, QVBoxLayout, QWidget, QApplication, QMenu,
                              QStyledItemDelegate, QStyleOptionViewItem,
                              QFileDialog)
-from PyQt5.QtCore import (QDateTime, QDir, QFileInfo, QSettings, QTimer, pyqtSignal, pyqtSlot,
-                          QSize, Qt, QModelIndex, QStandardPaths)
+from PyQt5.QtCore import (QDateTime, QDir, QFileInfo, QSettings, QTimer,
+                          pyqtSignal, pyqtSlot, QSize, Qt, QModelIndex,
+                          QStandardPaths)
 from PyQt5.QtGui import (QImage, QPixmap, QColor, QPainter, QPen, QCursor,
                          QIcon, QFont, QFontMetrics, QWheelEvent)
 
@@ -112,9 +113,7 @@ class settings_property(object):
 
 
 class SmoothListWidget(QListWidget):
-
     """ 一个可以平滑滚动的ListWidget """
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fps = 60
@@ -159,7 +158,6 @@ class SmoothListWidget(QListWidget):
         self.smoothMoveTimer.start(1000 / self.fps)
 
     def smoothMove(self):
-
         """ 计时器溢出时进行平滑滚动 """
         totalDelta = 0
         # 计算所有未处理完事件的滚动距离，定时器每溢出一次就将步数-1
@@ -174,10 +172,8 @@ class SmoothListWidget(QListWidget):
                         self.lastWheelEvent.globalPos(),
                         self.lastWheelEvent.pos(),
                         self.lastWheelEvent.globalPos(),
-                        round(totalDelta),
-                        Qt.Vertical,
-                        self.lastWheelEvent.buttons(),
-                        Qt.NoModifier)
+                        round(totalDelta), Qt.Vertical,
+                        self.lastWheelEvent.buttons(), Qt.NoModifier)
         # 将构造出来的滚轮事件发送给app处理
         QApplication.sendEvent(self.verticalScrollBar(), e)
         # 如果队列已空，停止滚动
@@ -204,7 +200,6 @@ class SmoothListWidget(QListWidget):
 
 
 class SmoothMode(Enum):
-
     """ 滚动模式 """
     NO_SMOOTH = 0
     CONSTANT = 1
@@ -549,11 +544,13 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         self.text_browser._bkg_color.selected_color.connect(self._change)
 
         fm = QFontMetrics(QFont('宋体', 15, QFont.Bold))
-        self.frame.setFixedHeight(60)
-        self.pushButton.setFixedHeight(60)
-        self.pushButton_2.setFixedHeight(60)
-        self.pushButton_3.setFixedHeight(60)
-        self.pushButton_6.setFixedHeight(60)
+        ww = fm.height() * 3 - 5
+
+        self.frame.setFixedHeight(ww)
+        self.pushButton.setFixedHeight(ww)
+        self.pushButton_2.setFixedHeight(ww)
+        self.pushButton_3.setFixedHeight(ww)
+        self.pushButton_6.setFixedHeight(ww)
 
         button_group = QButtonGroup()
         button_group.addButton(self.pushButton)
@@ -641,6 +638,12 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         self.checkBox.hide()  # bold
         self.label_9.hide()  # brightness
         self.frame_10.hide()  # brightness
+
+        # 设置hover_button
+        standard = self.pushButton.fontMetrics().height() + 5
+        self.pushButton_6.setNormal(CommonPixmaps.normal_button)
+        self.pushButton_6.setHover(CommonPixmaps.hover_button)
+        self.pushButton_6.setNHSize(standard, standard)
 
     def _useCustPolicy(self, state: int):
         if state == Qt.Checked:
@@ -1499,26 +1502,32 @@ class TaskWidget(QWidget, Ui_Form):
         self.subscribePageInitPolicy()
         self.readwidgets_init()
 
+        fm = self.chapter_label.fontMetrics()
+        h = min(fm.height() * 1.5, self.frame_11.height() - 5)
         self.more_button.setHoverLeave(CommonPixmaps.hl_more_svg, ('white', ),
-                                       ('#666666', ))
+                                       ('#666666', ), h)
         self.chapters_button_2.setHoverLeave(CommonPixmaps.hl_menu_svg,
-                                             ('white', ), ('#666666', ))
+                                             ('white', ), ('#666666', ), h)
         self.markup_button.setHoverLeave(CommonPixmaps.hl_book_mark,
-                                         ('white', ), ('#666666', ), 28)
+                                         ('white', ), ('#666666', ), h)
         self.exit_button.setHoverLeave(CommonPixmaps.hl_exit_read,
-                                       ('white', 'white'),
-                                       ('#666666', '#666666'), (22, 22))
+                                       ('white', ) * 2, ('#666666', ) * 2, h)
         self.next_button.setHoverLeave(CommonPixmaps.hl_next_chapter,
-                                       ('white', ), ('#666666', ), (22, 30))
+                                       ('white', ), ('#666666', ), h)
         self.prev_button.setHoverLeave(CommonPixmaps.hl_previous_chapter,
-                                       ('white', ), ('#666666', ), (22, 30))
+                                       ('white', ), ('#666666', ), h)
         self.skin_button.setHoverLeave(CommonPixmaps.hl_skin_svg, ('white'),
-                                       ('#666666'), (30, 30))
+                                       ('#666666'), h)
 
         self.other_button.setHoverLeave(CommonPixmaps.hl_other_button,
-                                        ('white', 'white', 'white'),
-                                        ('#666666', '#666666', '#666666'),
-                                        (30, 30))
+                                        ('white', ) * 3, ('#666666', ) * 3, h)
+
+        # 设置hover_button
+        standard = self.info_title.fontMetrics().height() + 2
+        self.pushButton.setNormal(CommonPixmaps.normal_button)
+        self.pushButton.setHover(CommonPixmaps.hover_button)
+        self.pushButton.setNHSize(standard, standard)
+
         self.stackedWidget_2.addWidget(self.chapters_widget)
         self.stackedWidget.setCurrentIndex(0)
         self.exitButtonShowPolicy()
@@ -1773,14 +1782,14 @@ class TaskWidget(QWidget, Ui_Form):
         self.textBrowser.task_widget = self
         self.textBrowser.setFont(font)
         self.text_buttons = QButtonGroup(self)
-        self.text_buttons.addButton(self.sizedown_button) #
-        self.text_buttons.addButton(self.sizeup_button) #
+        self.text_buttons.addButton(self.sizedown_button)  #
+        self.text_buttons.addButton(self.sizeup_button)  #
         self.text_buttons.addButton(self.markup_button)
         self.text_buttons.addButton(self.more_button)
         self.text_buttons.addButton(self.next_button)
         self.text_buttons.addButton(self.prev_button)
         self.text_buttons.addButton(self.chapters_button_2)
-        self.text_buttons.addButton(self.exit_button) #
+        self.text_buttons.addButton(self.exit_button)  #
         self.text_buttons.addButton(self.skin_button)
         self.text_buttons.addButton(self.other_button)
         self.text_buttons.buttonClicked.connect(self.readButtonsPolicy)

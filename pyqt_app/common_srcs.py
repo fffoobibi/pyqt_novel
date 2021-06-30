@@ -59,6 +59,9 @@ class CommonPixmaps(object):
     theme_t_8 = ''
 
     selectdia_read_svg = ':/ico/阅读.svg'
+    
+    normal_button = ':/ico/close_512px_1175341_easyicon.net.png'
+    hover_button = ':/ico/close_128px_1175741_easyicon.net.ico'
 
 
 class StyleSheets(str, Enum):

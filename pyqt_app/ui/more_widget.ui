@@ -54,7 +54,7 @@ QFrame{background-color: #2B2B2B}
        <number>0</number>
       </property>
       <item>
-       <widget class="QPushButton" name="pushButton_6">
+       <widget class="HoverButton" name="pushButton_6">
         <property name="cursor">
          <cursorShape>PointingHandCursor</cursorShape>
         </property>
@@ -1541,6 +1541,11 @@ QComboBox QAbstractItemView::item:selected
   </customwidget>
   <customwidget>
    <class>BorderButton</class>
+   <extends>QPushButton</extends>
+   <header location="global">customwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>HoverButton</class>
    <extends>QPushButton</extends>
    <header location="global">customwidgets</header>
   </customwidget>

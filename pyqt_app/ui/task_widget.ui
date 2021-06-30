@@ -29,7 +29,7 @@
    <item>
     <widget class="QStackedWidget" name="stackedWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="page">
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -70,7 +70,7 @@
            <number>0</number>
           </property>
           <item>
-           <widget class="QPushButton" name="pushButton">
+           <widget class="HoverButton" name="pushButton">
             <property name="cursor">
              <cursorShape>PointingHandCursor</cursorShape>
             </property>
@@ -1376,6 +1376,11 @@ QProgressBar::chunk {
    <extends>QWidget</extends>
    <header location="global">customwidgets</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>HoverButton</class>
+   <extends>QPushButton</extends>
+   <header location="global">customwidgets</header>
   </customwidget>
  </customwidgets>
  <resources>

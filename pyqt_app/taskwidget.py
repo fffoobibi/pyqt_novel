@@ -15,11 +15,11 @@ from PyQt5.QtWidgets import (QButtonGroup, QDialog, QFrame, QHBoxLayout,
                              QStyle, QVBoxLayout, QWidget, QApplication, QMenu,
                              QStyledItemDelegate, QStyleOptionViewItem,
                              QFileDialog)
-from PyQt5.QtCore import (QDateTime, QDir, QFileInfo, QSettings, QTimer,
+from PyQt5.QtCore import (QDir, QFileInfo, QSettings,
                           pyqtSignal, pyqtSlot, QSize, Qt, QModelIndex,
                           QStandardPaths)
 from PyQt5.QtGui import (QImage, QPixmap, QColor, QPainter, QPen, QCursor,
-                         QIcon, QFont, QFontMetrics, QWheelEvent)
+                         QIcon, QFont, QFontMetrics)
 
 from crawl_novel import InfoObj, EightSpider, get_spider_byname, DownStatus, Markup, LatestRead
 
@@ -112,10 +112,20 @@ class settings_property(object):
         self.func = func
         return self
 
+
 class MoreDelegate(QStyledItemDelegate):
     def __init__(self, more_widget: 'MoreWidget') -> None:
         super().__init__()
         self.more_widget = more_widget
+
+    def paintFont(self) -> QFont:
+        return QFont(self.more_widget.family, 11, QFont.Bold)
+
+    def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex) ->QSize:
+        sized = super().sizeHint(option, index)
+        height = option.fontMetrics.height() * 2.5
+        sized.setHeight(height)
+        return sized
 
     def paint(self, painter: QPainter, option: QStyleOptionViewItem,
               index: QModelIndex) -> None:
@@ -128,12 +138,13 @@ class MoreDelegate(QStyledItemDelegate):
             painter.fillRect(rect, QColor(0, 0, 0, 150))
 
         cust_images = self.more_widget.cust_images
-        flags = [pic for pic, text_colo, bkg_color in cust_images]
+        flags = [pic for pic, text_color, bkg_color in cust_images]
         current_color = cust_images[flags.index(current_file)][1]
         painter.save()
         painter.setRenderHint(QPainter.Antialiasing, True)
+        painter.setRenderHint(QPainter.TextAntialiasing, True)
         painter.setPen(QColor(current_color))
-        painter.setFont(QFont(self.more_widget.family, 11, QFont.Bold))
+        painter.setFont(self.paintFont())
         painter.drawText(rect.adjusted(10, 10, -10, -10), Qt.AlignCenter,
                          '文字颜色')
         painter.restore()
@@ -174,13 +185,14 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
             for file in custs:
                 item = QListWidgetItem()
                 item.setToolTip(file)
-                item.setSizeHint(QSize(50, 60))
                 item.setData(Qt.UserRole, file)
                 self.list_widget.addItem(item)
                 datas.append(file)
-            index = datas.index(current)
-            if index > -1:
-                self.list_widget.setCurrentRow(index)
+            try:
+                index = datas.index(current)
+                if index > -1:
+                    self.list_widget.setCurrentRow(index)
+            except ValueError: ...
 
         def show_policy(self, custs: List, current: str):
             if custs:

@@ -1,14 +1,14 @@
-from functools import partialmethod
-from posixpath import abspath
+import os
 import wmi
 import platform
-import os
 
 from enum import Enum
 from copy import deepcopy
 from types import MethodType
 from typing import Any, Callable, List, Union
 from collections import deque
+from functools import partialmethod
+
 
 from PyQt5.QtWidgets import (QButtonGroup, QDialog, QFrame, QHBoxLayout,
                              QLabel, QListWidget, QListWidgetItem, QPushButton,
@@ -304,7 +304,7 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
     def margin(self):
         ...
 
-    @settings_property(2)
+    @settings_property(0)
     def letter_spacing(self):
         ...
 
@@ -428,7 +428,7 @@ class MoreWidget(QWidget, MoreUi):  # 阅读设置界面
         elif flag == 1:
             return self.auto_split
 
-    @property
+    @lasyproperty
     def basic_fm(self) -> QFontMetrics:
         return self.task_widget.basic_fm
 
